@@ -1,0 +1,57 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\begin{document}
+
+\title{DFLAMIO: Distributed FLAM in LIO}
+
+\author{\IEEEauthorblockN{Name}
+\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+\textit{name of organization (of Aff.)}\\
+City, Country \\
+email address}
+}
+
+\maketitle
+
+\begin{abstract}
+We present a natural target for the FLAM authorization logic in a dynamic setting by instantiating the abstract label model of LIO with the model offered by FLAM. The resulting system, FLAMIO, has provably strong confidentiality and integrity guarantees, and allows for a straightforward extension of LIO that supports distributed computation. Specifically, we extend FLAMIO with remote procedure calls, which in turn can be used to implement the distributed part of the authorization logic of FLAM. We have implemented DFLAMIO along with several case studies demonstrating the usefulness of having dynamic information-flow in a distributed setting with mutual distrust.
+\end{abstract}
+
+%\begin{IEEEkeywords}
+%component, formatting, style, styling, insert
+%\end{IEEEkeywords}
+
+\section{Introduction}
+
+\section{Background}
+
+Introduce \cite{Arden:2015:FA:2859845.2859998} and \cite{SRMMlio}
+
+\section{A calculus for DFLAMIO}\label{lab:calculus}
+
+\section{Implementation and case studies}
+We have implemented DFLAMIO in about 2200 lines of Haskell code. The implementation uses the efficient resolution algorithm for authorization queries described in \cite{Arden:2015:FA:2859845.2859998}, along with additional layers of caching to avoid repeated network communication. To simplify the implementation we differ from the calculus in the following ways:
+\begin{enumerate}
+    \item An RPC invocation does not send the function across the network. Instead, the receiver of the RPC has a table from identifiers to functions, and the sender of the RPC sends this identifier along with the list of arguments. This does not lead to loss of expressivity, though: As shown in \cite{Cooper:2009:RC:1599410.1599439} one can translate a program written in the calculus from Section~\ref{lab:calculus} to a program written in Haskell using the DFLAMIO implementation by performing defunctionalization.
+    \item \textcolor{red}{More?}
+\end{enumerate}
+Using this implementation we have constructed three use cases for DFLAMIO. The first use case is a distributed bank, in which users can perform RPCs to handle transactions across accounts between different users. The second use case is a social jukebox service \cite{Lots of citations} where people can schedule music during social gatherings. \textcolor{red}{More?}
+
+\section{Related work}
+DFLATE, CLIO, Concurrent LIO, Narita's work on abstraction machine for RPC.
+
+\section{Conclusion}
+
+\bibliographystyle{abbrv}
+\bibliography{litterature}
+
+\vspace{12pt}
+
+\end{document}
