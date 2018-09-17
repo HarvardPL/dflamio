@@ -7,6 +7,7 @@
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
+\input{macros.tex}
 \begin{document}
 
 \title{DFLAMIO: Distributed FLAM in LIO}
@@ -29,6 +30,7 @@ We present a natural target for the FLAM authorization logic in a dynamic settin
 %\end{IEEEkeywords}
 
 \section{Introduction}
+Talk about why FLAC and DFLAC do not use the full expressivity of FLAM (purely static guarantees).
 
 \section{Background}
 
@@ -36,16 +38,60 @@ Introduce \cite{Arden:2015:FA:2859845.2859998} and \cite{SRMMlio}
 
 \section{A calculus for DFLAMIO}\label{lab:calculus}
 
-\section{Implementation and case studies}
-We have implemented DFLAMIO in about 2200 lines of Haskell code. The implementation uses the efficient resolution algorithm for authorization queries described in \cite{Arden:2015:FA:2859845.2859998}, along with additional layers of caching to avoid repeated network communication. To simplify the implementation we differ from the calculus in the following ways:
+Talk about:
 \begin{enumerate}
-    \item An RPC invocation does not send the function across the network. Instead, the receiver of the RPC has a table from identifiers to functions, and the sender of the RPC sends this identifier along with the list of arguments. This does not lead to loss of expressivity, though: As shown in \cite{Cooper:2009:RC:1599410.1599439} one can translate a program written in the calculus from Section~\ref{lab:calculus} to a program written in Haskell using the DFLAMIO implementation by performing defunctionalization.
-    \item \textcolor{red}{More?}
+    \item The grammar
+    \item The evaluation context
+    \item The local reduction rules
+    \item The global reduction rules
+    \item The type system
+    \item Show preservation
+    \item Talk about the invariant used for preservation?
+    \item Traces
+    \item Define knowledge
+    \item Define TINI
+    \item Show the TINI statement
 \end{enumerate}
-Using this implementation we have constructed three use cases for DFLAMIO. The first use case is a distributed bank, in which users can perform RPCs to handle transactions across accounts between different users. The second use case is a social jukebox service \cite{Lots of citations} where people can schedule music during social gatherings. \textcolor{red}{More?}
+
+\section{Implementation and case studies}
+We have implemented DFLAMIO as a library in Haskell. The code is approximately 2200 lines of code and uses the efficient query resolution algorithm for authorization queries described in \cite{Arden:2015:FA:2859845.2859998}, along with additional layers of caching to avoid repeated network communication. To simplify the implementation we differ from the calculus in that an RPC invocation does not send the function across the network. Instead, the receiver of the RPC has a table mapping identifiers to functions, and the caller sends this identifier along with the list of arguments. This does not lead to loss of expressivity, though: As shown in \cite{Cooper:2009:RC:1599410.1599439} one can translate a program written in the calculus from Section~\ref{lab:calculus} to a program written in Haskell using the DFLAMIO implementation by performing defunctionalization.
+
+Using this implementation we have constructed three use cases for DFLAMIO. The first use case is a distributed bank, in which users can perform RPCs to handle transactions across accounts between different users. The second use case is a social jukebox service \cite{Lots of citations} where people can schedule music during social gatherings. The third use case is a secure database containing confidential information about government agencies.
+
+\subsection{Secure banking}
+Idea: The bank is a shared resource where clients can invoke RPCs to perform transactions.
+Interface for the bank:
+\begin{enumerate}
+    \item \textsf{transfer: Principal $\rightarrow$ Principal $\rightarrow$ LIO Unit}
+    \item \textsf{login: Principal $\rightarrow$ Labeled String $\rightarrow$ LIO Unit $\rightarrow$ LIO Unit} where the Labeled String argument represents password
+\end{enumerate}
+Use cases:
+\begin{enumerate}
+    \item Alice can transfer to Bob if Bob is allowed to see the amount of money on Alice's account (as accounts cannot be negative), and Bob has given Alice integrity permissions so that she can write to Bob's account. \TODO{This last requirement is bad: Now Alice can transfer money from Bob's account to her own.}
+    \item Alice can allow her accountant, Charlie, to move money on her behalf for a limited time using $\mathsf{newScope}$ and $\mathsf{addDelegate}$.
+\end{enumerate}
+
+\subsection{A secure social jukebox service}
+Idea: Friends are gathered at a party, but they want to vote on which songs should be played. But we don't want people to know who votes for what. So there should be a principal $\mathsf{Jukebox}$ that can read a value containing votes, and this value can be updated by party principals using an RPC call.
+
+We should not allow a user to vote twice on the same song, so we need to keep a mapping from songs to which principals have voted on this song. But party members should not be allowed to read who votes for what! (We don't want people to know I votes for Taylor Swift).
+
+Interface for the social jukebox:
+\begin{enumerate}
+    \item \textsf{vote: Song $\rightarrow$ LIO Unit}
+    \item \textsf{addCandidate: Song $\rightarrow$ LIO ()}
+    \item \textsf{getCandidates: Song $\rightarrow$ [(String, [Labeled Principal])]}
+    \item \textsf{playSong: Song $\rightarrow$ LIO Unit}
+\end{enumerate}
+Note that now one can implement a function \textsf{hasVoted: Principal $\rightarrow$ Song $\rightarrow$ LIO Bool} that uses \textsf{getCandidates}.
+
+\subsection{Government agency records}
+Idea: We want to keep a record of Principals and the agencies they belong to, along with their clearance levels. This is easy: A delegation (Alice ``acts for'' CIA:secret$\rightarrow$) represents the fact that Alice is allowed to read CIA information at level secret. We can then check permissions by just doing an ``acts for'' check. But as we want these delegations to be secret (ie., we don't want the public to know that Alice works for CIA and has secret clearance) we can put in a sufficiently high label on the delegation:
+Alice ``acts for'' CIA:secret$\rightarrow$ @ CIA:secret. Now only principals with clearance above CIA:secret can know if Alice is a member of CIA and has clearance secret.
+Now the CIA can (on their servers) add this delegation, and other agents ``in the field'' can do a query and check Alice's permissions.
 
 \section{Related work}
-DFLATE, CLIO, Concurrent LIO, Narita's work on abstraction machine for RPC.
+DFLATE, CLIO and Concurrent LIO, Narita's work on abstraction machine for RPC, Myers' Hyperflow.
 
 \section{Conclusion}
 
