@@ -9,6 +9,8 @@
 \usepackage{mathtools}
 \usepackage{braket}
 \usepackage{mathpartir}
+\usepackage{listings}
+\usepackage{zi4}
 \usepackage{mdframed}
 \usepackage{minted}
 \usepackage{amsmath,amssymb,amsfonts}
@@ -70,7 +72,7 @@ Figure~\ref{fig:language-syntax} shows the syntax of \lang. The shaded regions d
          \tolabeled{\expr}{\expr} \mid \getlabel \\ &\mid \getclearance \mid \labelof{\expr} \mid \withscope{\expr} \mid \withstrategy{\expr}{\expr} \\ &\mid \adddelegate{\expr}{\expr}{\expr} \mid \removedelegate{\expr}{\expr}{\expr} \mid \getstrategy \mid \expr \actsfor \expr \\ &\mid
          \graybox{\wait{n}[\type]} \mid \graybox{\resetstrategy{\overline{p}}{\expr}} \mid \graybox{\resetTolabeled{p}{q}{\expr}} \mid \graybox{\resetscope{\scope}{\expr}}
          \end{aligned}$ \\
-         $\overline{\expr} ::= \expr; \overline{\expr} \mid \termsym$ \\
+         %$\overline{\expr} ::= \expr; \overline{\expr} \mid \termsym$ \\
          $\type ::= \bool \mid \unit \mid \func{\type}{\type} \mid \listtype{\type} \mid \pair{\type}{\type} \mid \labeltype \mid \labeled{\type} \mid \liotype{\type} \mid \reftype[n]{\type}$ \\
     \end{tabular}
     \caption{The \lang{} language}
@@ -104,6 +106,35 @@ We have implemented \lang as a library in Haskell. The code is approximately 220
 Using this implementation we have constructed three use cases for \lang. The first use case is a distributed bank, in which users can perform RPCs to handle transactions across accounts between different users. The second use case is a social jukebox service \cite{Lots of citations} where people can schedule music during social gatherings. The third use case is a secure database containing confidential information about government agencies.
 
 \subsection{Secure banking}
+We first consider a secure banking service $S$. For simplicity we assume the language has been extended with numbers and strings. A user is represented by a named principal $n$, and each user has an account consisting of a single nonnegative number representing their balance. A user authenticates themselves by invoking the function $\mathtt{login}$ which received the user, a labeled string representing the password, and a callback to invoke if the authentication succeeds. Furthermore, we assume a primitive $\mathtt{transfer}$ for transferring money between two accounts. The signatures of these functions is given in Figure~\ref{fig:sec-banking-sigs}.
+Using these primitive we can model several complex scenarios. For instance in Figure~\ref{fig:sec-bank-alice-send-to-bob}, Alice authenticates with the bank and sends Bob 100 dollars. Since this will reveal to Bob the fact that Alice has at least 100 dollars on her account, she needs to add a delegation stating that Bob is allowed to learn this information. This delegation is controlled by Alice and Alice allows the presence of this delegation to be learned only by herself and Bob. This decision is reflected by the label placed on the delegation.
+
+\begin{figure}
+    \centering
+    \begin{align*}
+\mathtt{login}&: \labeltype \to \labeled{\mathtt{String}} \\ &\quad \to \liotype{\unit} \to \liotype{\unit}\\
+\mathtt{transfer}&: \labeltype \to \labeltype \to \Integer \to \liotype{\unit}
+\end{align*}
+    \caption{Primitives for implementing secure banking.}
+    \label{fig:sec-banking-sigs}
+\end{figure}
+
+\TODO{The labeling of the password requires conf(A) actsfor conf(S), meaning that Alice should be able to read the server's secrets in order to label the password such that only the server can see the value. This seems overly restrictive.}
+
+\begin{figure}
+    \centering
+\begin{lstlisting}
+((*@$\lambda^{\text{A}}$@*) _ .
+  pw <- label "password" ((*@$\conf{$S$} \conj \integ{$ A$}$@*))
+  login A pw
+    (withScope
+      assume (*@$\conf{$B$}$@*) (*@$\actsfor$@*) (*@$\conf{$A$}$@*) @ ((*@$\conf{$(A $ \disj $ B)$} \conj \integ{$ A$}$@*))
+      transfer Alice Bob 100)) ()
+\end{lstlisting}
+\caption{Alice authenticates with the server and sends money to Bob.}
+\label{fig:sec-bank-alice-send-to-bob}
+\end{figure}
+
 Idea: The bank is a shared resource where clients can invoke RPCs to perform transactions.
 Interface for the bank:
 \begin{enumerate}
@@ -117,6 +148,15 @@ Use cases:
 \end{enumerate}
 
 \subsection{A secure social jukebox service}
+We now consider a secure version of a social jukebox service. A group of principals $\Nameset$ is gathered at a party and want to perform confidential voting about which songs should be played at the party. We assume a distinguished principal $\mathsf{J}$ (for jukebox) representing a machine supporting the following primitive functions.
+\begin{align*}
+\mathtt{vote}&: \labeled{\String} \rightarrow \liotype{\unit}\\
+\mathtt{candidates}&: \unit \rightarrow \liotype{\listtype{\pair{\String}{\listtype{\labeled{\labeltype}}}}}\\
+\mathtt{play}&: \String \rightarrow \liotype{\unit}
+\end{align*}
+The function $\mathtt{vote}$ casts a vote for the song represented by the labeled string argument.
+
+
 Idea: Friends are gathered at a party, but they want to vote on which songs should be played. But we don't want people to know who votes for what. So there should be a principal $\mathsf{Jukebox}$ that can read a value containing votes, and this value can be updated by party principals using an RPC call.
 
 We should not allow a user to vote twice on the same song, so we need to keep a mapping from songs to which principals have voted on this song. But party members should not be allowed to read who votes for what! (We don't want people to know I votes for Taylor Swift).
@@ -125,7 +165,7 @@ Interface for the social jukebox:
 \begin{enumerate}
     \item \textsf{vote: Song $\rightarrow$ LIO Unit}
     \item \textsf{addCandidate: Song $\rightarrow$ LIO ()}
-    \item \textsf{getCandidates: Song $\rightarrow$ LIO [(String, [Labeled Principal])]}
+    \item \textsf{getCandidates: LIO [(String, [Labeled Principal])]}
     \item \textsf{playSong: Song $\rightarrow$ LIO Unit}
 \end{enumerate}
 Note that now one can implement a function \textsf{hasVoted: Principal $\rightarrow$ Song $\rightarrow$ LIO Bool} that uses \textsf{getCandidates}.

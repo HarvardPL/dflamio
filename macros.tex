@@ -55,7 +55,7 @@
 \newcommand{\withstrategykw}{\mathsf{withStrategy}}
 \newcommand{\withstrategy}[2]{\withstrategykw\;#1\;#2}
 \newcommand{\adddelegatekw}{\mathsf{assume}}
-\newcommand{\adddelegate}[3]{\adddelegatekw\;(#1 \actsfor #2)\;#3}
+\newcommand{\adddelegate}[3]{\adddelegatekw\;(#1 \actsfor #2) \;@ \; #3}
 \newcommand{\removedelegatekw}{\mathsf{discard}}
 \newcommand{\removedelegate}[3]{\removedelegatekw\;(#1 \actsfor #2)\;#3}
 \newcommand{\getstrategy}{\mathsf{getStrategy}}
@@ -68,6 +68,8 @@
 \newcommand{\termsym}{\bullet}
 \newcommand{\bool}{\mathsf{Bool}}
 \newcommand{\unit}{\mathsf{Unit}}
+\newcommand{\String}{\mathsf{String}}
+\newcommand{\Integer}{\mathsf{Int}}
 \newcommand{\func}[2]{#1 \to #2}
 \newcommand{\pair}[2]{#1 \times #2}
 \newcommand{\listtype}[1]{\lbrack#1\rbrack}
@@ -81,3 +83,32 @@
 
 \definecolor{verylightgray}{rgb}{0.9,0.9,0.9}
 \newcommand{\graybox}[1]{\fcolorbox{white}{verylightgray}{\ensuremath{#1}}}
+
+\definecolor{bluekeywords}{rgb}{0.13, 0.13, 1}
+\definecolor{greencomments}{rgb}{0, 0.5, 0}
+\definecolor{redstrings}{rgb}{0.9, 0, 0}
+\definecolor{graynumbers}{rgb}{0.5, 0.5, 0.5}
+
+\lstset{
+    columns=fullflexible,
+    showspaces=false,
+    showtabs=false,
+    breaklines=true,
+    showstringspaces=false,
+    breakatwhitespace=true,
+    escapeinside={(*@}{@*)},
+    commentstyle=\color{greencomments},
+    keywordstyle=\color{bluekeywords},
+    stringstyle=\color{redstrings},
+    numberstyle=\color{graynumbers},
+    basicstyle=\ttfamily\footnotesize,
+    frame=l,
+    framesep=12pt,
+    xleftmargin=12pt,
+    tabsize=4,
+    captionpos=b,
+    emph={%  
+    true, false, nil, if, then, else, case, of, fix, return, new, label, unlabel, toLabeled, getLabel, getClearance, labelOf, withScope, withStrategy, assume, discard, getStrategy, wait, resetStrategy, resetScope, Bool, Unit, Principal, Labeled, LIO, Ref
+    },
+    emphstyle={\bfseries}
+}
