@@ -135,6 +135,7 @@ Using these primitive we can model several complex scenarios. For instance in Fi
 \label{fig:sec-bank-alice-send-to-bob}
 \end{figure}
 
+\BRAINDUMP{
 Idea: The bank is a shared resource where clients can invoke RPCs to perform transactions.
 Interface for the bank:
 \begin{enumerate}
@@ -145,7 +146,7 @@ Use cases:
 \begin{enumerate}
     \item Alice can transfer to Bob if Bob is allowed to see the amount of money on Alice's account (as accounts cannot be negative), and Bob has given Alice integrity permissions so that she can write to Bob's account. \TODO{This last requirement is bad: Now Alice can transfer money from Bob's account to her own.}
     \item Alice can allow her accountant, Charlie, to move money on her behalf for a limited time using $\mathsf{newScope}$ and $\mathsf{addDelegate}$.
-\end{enumerate}
+\end{enumerate}}
 
 \subsection{A secure social jukebox service}
 We now consider a secure version of a social jukebox service. A group of principals $\Nameset$ is gathered at a party and want to perform confidential voting about which songs should be played at the party. We assume a distinguished principal $\mathsf{J}$ (for jukebox) representing a machine supporting the following primitive functions.
@@ -156,24 +157,25 @@ We now consider a secure version of a social jukebox service. A group of princip
 \end{align*}
 The function $\mathtt{vote}$ casts a vote for the song represented by the labeled string argument.
 
+\BRAINDUMP{
+Idea: Friends are gathered at a party, but they want to vote on which songs should be played. But we don't want people to know who votes for what. So there should be a principal $\mathsf{Jukebox}$ that can read a value containing votes, and this value can be updated by party principals using an RPC call.}
 
-Idea: Friends are gathered at a party, but they want to vote on which songs should be played. But we don't want people to know who votes for what. So there should be a principal $\mathsf{Jukebox}$ that can read a value containing votes, and this value can be updated by party principals using an RPC call.
+\BRAINDUMP{We should not allow a user to vote twice on the same song, so we need to keep a mapping from songs to which principals have voted on this song. But party members should not be allowed to read who votes for what! (We don't want people to know I votes for Taylor Swift).}
 
-We should not allow a user to vote twice on the same song, so we need to keep a mapping from songs to which principals have voted on this song. But party members should not be allowed to read who votes for what! (We don't want people to know I votes for Taylor Swift).
-
-Interface for the social jukebox:
+\BRAINDUMP{Interface for the social jukebox:
 \begin{enumerate}
     \item \textsf{vote: Song $\rightarrow$ LIO Unit}
     \item \textsf{addCandidate: Song $\rightarrow$ LIO ()}
     \item \textsf{getCandidates: LIO [(String, [Labeled Principal])]}
     \item \textsf{playSong: Song $\rightarrow$ LIO Unit}
 \end{enumerate}
-Note that now one can implement a function \textsf{hasVoted: Principal $\rightarrow$ Song $\rightarrow$ LIO Bool} that uses \textsf{getCandidates}.
+Note that now one can implement a function \textsf{hasVoted: Principal $\rightarrow$ Song $\rightarrow$ LIO Bool} that uses \textsf{getCandidates}.}
 
 \subsection{Government agency records}
+\BRAINDUMP{
 Idea: We want to keep a record of Principals and the agencies they belong to, along with their clearance levels. This is easy: A delegation (Alice ``acts for'' CIA:secret$\rightarrow$) represents the fact that Alice is allowed to read CIA information at level secret. We can then check permissions by just doing an ``acts for'' check. But as we want these delegations to be secret (ie., we don't want the public to know that Alice works for CIA and has secret clearance) we can put in a sufficiently high label on the delegation:
 Alice ``acts for'' CIA:secret$\rightarrow$ @ CIA:secret. Now only principals with clearance above CIA:secret can know if Alice is a member of CIA and has clearance secret.
-Now the CIA can (on their servers) add this delegation, and other agents ``in the field'' can do a query and check Alice's permissions.
+Now the CIA can (on their servers) add this delegation, and other agents ``in the field'' can do a query and check Alice's permissions.}
 
 \section{Related work}
 DFLATE, CLIO and Concurrent LIO, Narita's work on abstraction machine for RPC, Myers' Hyperflow.
