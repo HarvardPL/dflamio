@@ -1,1 +1,83 @@
 \newcommand{\TODO}[1]{\textcolor{red}{#1}}
+\newcommand{\lang}{DFLAMIO}
+\newcommand{\name}{n}
+\newcommand{\Nameset}{\mathcal{N}}
+\newcommand{\conj}{\mathrel{\land}}
+\newcommand{\disj}{\mathrel{\lor}}
+\newcommand{\conf}[1]{#1^{\rightarrow}}
+\newcommand{\integ}[1]{#1^{\leftarrow}}
+\newcommand{\owner}[2]{{#1}^{:#2}}
+\newcommand{\addr}{a}
+\newcommand{\Addr}{A}
+\newcommand{\val}{v}
+\newcommand{\expr}{e}
+\newcommand{\true}{\mathsf{true}}
+\newcommand{\false}{\mathsf{false}}
+\newcommand{\abs}[4]{\lambda^{#1}_{#2}\,#3.\,#4}
+\newcommand{\lb}[2]{#2 \mathbin{@} #1}
+\newcommand{\type}{\tau}
+\newcommand{\cons}[2]{#1 \mathbin{::} #2}
+\newcommand{\nil}{\mathsf{nil}}
+\newcommand{\liokw}{\mathsf{LIO}}
+\newcommand{\lio}[1]{(#1)^{\liokw}}
+\newcommand{\app}[2]{#1\;#2}
+\newcommand{\proj}[2]{\pi_{#1}\,#2}
+\newcommand{\ifkw}{\mathsf{if}}
+\newcommand{\thenkw}{\mathsf{then}}
+\newcommand{\elsekw}{\mathsf{else}}
+\newcommand{\ifexpr}[3]{\ifkw\;#1\;\thenkw\;#2\;\elsekw\;#3}
+\newcommand{\casekw}{\mathsf{case}}
+\newcommand{\ofkw}{\mathsf{of}}
+\newcommand{\case}[3]{\casekw\;#1\;\ofkw\;#2\;#3}
+\newcommand{\fixkw}{\mathsf{fix}}
+\newcommand{\fix}[1]{\fixkw\;#1}
+\newcommand{\returnkw}{\mathsf{return}}
+\newcommand{\return}[1]{\returnkw\;#1}
+\newcommand{\bindop}{\mathbin{\raisebox{-0.1ex}{\mintinline{haskell}{>>=}}}}
+\newcommand{\bind}[2]{#1 \bindop #2}
+\DeclareMathOperator{\readrefkw}{!}
+\newcommand{\readref}[1]{\readrefkw #1}
+\newcommand{\writeref}[2]{#1 := #2}
+\newcommand{\getlabel}{\mathsf{getLabel}}
+\newcommand{\getclearance}{\mathsf{getClearance}}
+\newcommand{\labelofkw}{\mathsf{labelOf}}
+\newcommand{\labelof}[1]{\labelofkw\;#1}
+\newcommand{\newkw}{\mathsf{new}}
+\newcommand{\new}[2]{\newkw\;#1\;#2}
+\newcommand{\labelkw}{\mathsf{label}}
+\newcommand{\Label}[2]{\labelkw\;#1\;#2}
+\newcommand{\unlabelkw}{\mathsf{unlabel}}
+\newcommand{\unlabel}[1]{\unlabelkw\;#1}
+\newcommand{\tolabeledkw}{\mathsf{toLabeled}}
+\newcommand{\tolabeled}[2]{\tolabeledkw\;#1\;#2}
+\newcommand{\withscopekw}{\mathsf{withScope}}
+\newcommand{\withscope}[1]{\withscopekw\;#1}
+\newcommand{\withstrategykw}{\mathsf{withStrategy}}
+\newcommand{\withstrategy}[2]{\withstrategykw\;#1\;#2}
+\newcommand{\adddelegatekw}{\mathsf{assume}}
+\newcommand{\adddelegate}[3]{\adddelegatekw\;(#1 \actsfor #2)\;#3}
+\newcommand{\removedelegatekw}{\mathsf{discard}}
+\newcommand{\removedelegate}[3]{\removedelegatekw\;(#1 \actsfor #2)\;#3}
+\newcommand{\getstrategy}{\mathsf{getStrategy}}
+\newcommand{\actsfor}{\succcurlyeq}
+\NewDocumentCommand{\wait}{ m O{}}{\mathsf{wait}_{#2}(#1)}
+\newcommand{\resetstrategy}[2]{\mathsf{resetStrategy}_{#1}(#2)}
+\newcommand{\resetscope}[2]{\mathsf{resetScope}_{#1}(#2)}
+\NewDocumentCommand{\resetTolabeled}{ O{} m m m }{\tolabeledkw^{#1}_{#2}\;#3\;#4}
+\newcommand{\scope}{\Delta}
+\newcommand{\termsym}{\bullet}
+\newcommand{\bool}{\mathsf{Bool}}
+\newcommand{\unit}{\mathsf{Unit}}
+\newcommand{\func}[2]{#1 \to #2}
+\newcommand{\pair}[2]{#1 \times #2}
+\newcommand{\listtype}[1]{\lbrack#1\rbrack}
+\newcommand{\labeltype}{\mathsf{Principal}}
+\newcommand{\labeledkw}{\mathsf{Labeled}}
+\newcommand{\labeled}[1]{\labeledkw\;#1}
+\newcommand{\liotype}[1]{\liokw\;#1}
+\newcommand{\refkw}{\mathsf{Ref}}
+\NewDocumentCommand{\reftype}{ O{} m}{\refkw_{#1}\;#2}
+\newcommand{\store}{\phi}
+
+\definecolor{verylightgray}{rgb}{0.9,0.9,0.9}
+\newcommand{\graybox}[1]{\fcolorbox{white}{verylightgray}{\ensuremath{#1}}}

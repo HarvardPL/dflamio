@@ -2,11 +2,22 @@
 \IEEEoverridecommandlockouts
 % The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
 \usepackage{cite}
+\usepackage[parfill]{parskip}
+\usepackage{hyperref}
+\usepackage{extarrows}
+\usepackage{centernot}
+\usepackage{mathtools}
+\usepackage{braket}
+\usepackage{mathpartir}
+\usepackage{mdframed}
+\usepackage{minted}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{algorithmic}
 \usepackage{graphicx}
+\usepackage{caption}
 \usepackage{textcomp}
 \usepackage{xcolor}
+\usepackage{empheq}
 \input{macros.tex}
 \begin{document}
 
@@ -22,7 +33,7 @@ email address}
 \maketitle
 
 \begin{abstract}
-We present a natural target for the FLAM authorization logic in a dynamic setting by instantiating the abstract label model of LIO with the model offered by FLAM. The resulting system, FLAMIO, has provably strong confidentiality and integrity guarantees, and allows for a straightforward extension of LIO that supports distributed computation. Specifically, we extend FLAMIO with remote procedure calls, which in turn can be used to implement the distributed part of the authorization logic of FLAM. We have implemented DFLAMIO along with several case studies demonstrating the usefulness of having dynamic information-flow in a distributed setting with mutual distrust.
+We present a natural application of the FLAM authorization logic: A programming language with dynamic information-flow control. The language is constructed by instantiating the abstract label model of LIO with the model offered by FLAM. The resulting system, FLAMIO, has provably strong confidentiality and integrity guarantees, and allows for a straightforward extension of LIO that supports distributed computation. Specifically, we extend FLAMIO with remote procedure calls, which in turn can be used to implement the distributed part of the authorization logic of FLAM. We have implemented \lang and shown that it enforces a strong notion of noninterference. We also present several case studies demonstrating the usefulness of having dynamic information-flow in a distributed setting with mutual distrust.
 \end{abstract}
 
 %\begin{IEEEkeywords}
@@ -34,19 +45,53 @@ Talk about why FLAC and DFLAC do not use the full expressivity of FLAM (purely s
 
 \section{Background}
 
-Introduce \cite{Arden:2015:FA:2859845.2859998} and \cite{SRMMlio}
+Introduce \cite{Arden:2015:FA:2859845.2859998} and \cite{SRMMlio}. Talk about the the syntax in Figure~\ref{fig:flam-syntax}.
 
-\section{A calculus for DFLAMIO}\label{lab:calculus}
+\begin{figure}[h]
+    \centering
+    \begin{tabular}{ll}
+    $n \in \Nameset$ \\
+    $p ::= \bot \mid \top \mid \name \mid p \conj p \mid p \disj p \mid \conf{p} \mid \integ{p} \mid \owner{p}{p}$
+    \end{tabular}
+    \caption{Syntax of FLAM}
+    \label{fig:flam-syntax}
+\end{figure}
+
+\section{A calculus for \lang}\label{lab:calculus}
+Figure~\ref{fig:language-syntax} shows the syntax of \lang. The shaded regions describe syntax not part of the surface language, but rather constructs used during evaluation.
+
+\begin{figure*}
+    \centering
+    \begin{tabular}{l}
+         $\val ::= \true \mid \false \mid () \mid p \mid \addr \mid x \mid \abs{n}{\lb{p}{\type}}{x}{\expr} \mid (\expr, \expr) \mid \cons{\expr}{\expr} \mid \nil \mid \graybox{\lb{p}{\expr}} \mid \graybox{\lio{\expr}}$ \\
+         $\begin{aligned}[t]
+         \expr ::=&\;\; \val \mid \app{\expr}{\expr} \mid \proj{i}{\expr} \mid \ifexpr{\expr}{\expr}{\expr} \mid \case{\expr}{\expr}{\expr} \mid \fix{\expr} \mid \return{\expr} \mid \bind{\expr}{\expr} \\ &\mid
+         \new{\expr}{\expr} \mid \readref{\expr} \mid \writeref{\expr}{\expr} \mid \Label{\expr}{\expr} \mid \unlabel{\expr} \mid
+         \tolabeled{\expr}{\expr} \mid \getlabel \\ &\mid \getclearance \mid \labelof{\expr} \mid \withscope{\expr} \mid \withstrategy{\expr}{\expr} \\ &\mid \adddelegate{\expr}{\expr}{\expr} \mid \removedelegate{\expr}{\expr}{\expr} \mid \getstrategy \mid \expr \actsfor \expr \\ &\mid
+         \graybox{\wait{n}[\type]} \mid \graybox{\resetstrategy{\overline{p}}{\expr}} \mid \graybox{\resetTolabeled{p}{q}{\expr}} \mid \graybox{\resetscope{\scope}{\expr}}
+         \end{aligned}$ \\
+         $\overline{\expr} ::= \expr; \overline{\expr} \mid \termsym$ \\
+         $\type ::= \bool \mid \unit \mid \func{\type}{\type} \mid \listtype{\type} \mid \pair{\type}{\type} \mid \labeltype \mid \labeled{\type} \mid \liotype{\type} \mid \reftype[n]{\type}$ \\
+    \end{tabular}
+    \caption{The \lang{} language}
+    \label{fig:language-syntax}
+\end{figure*}
 
 Talk about:
 \begin{enumerate}
     \item The grammar
     \item The evaluation context
     \item The local reduction rules
+    \item Discuss the usage of strategies
     \item The global reduction rules
     \item The type system
     \item Show preservation
     \item Talk about the invariant used for preservation?
+\end{enumerate}
+
+\section{Security guarantees}
+Talk about:
+\begin{enumerate}
     \item Traces
     \item Define knowledge
     \item Define TINI
@@ -54,9 +99,9 @@ Talk about:
 \end{enumerate}
 
 \section{Implementation and case studies}
-We have implemented DFLAMIO as a library in Haskell. The code is approximately 2200 lines of code and uses the efficient query resolution algorithm for authorization queries described in \cite{Arden:2015:FA:2859845.2859998}, along with additional layers of caching to avoid repeated network communication. To simplify the implementation we differ from the calculus in that an RPC invocation does not send the function across the network. Instead, the receiver of the RPC has a table mapping identifiers to functions, and the caller sends this identifier along with the list of arguments. This does not lead to loss of expressivity, though: As shown in \cite{Cooper:2009:RC:1599410.1599439} one can translate a program written in the calculus from Section~\ref{lab:calculus} to a program written in Haskell using the DFLAMIO implementation by performing defunctionalization.
+We have implemented \lang as a library in Haskell. The code is approximately 2200 lines of code and uses the efficient query resolution algorithm for authorization queries described in \cite{Arden:2015:FA:2859845.2859998}, along with additional layers of caching to avoid repeated network communication. To simplify the implementation we differ from the calculus in that an RPC invocation does not send the function across the network. Instead, the receiver of the RPC has a table mapping identifiers to functions, and the caller sends this identifier along with the list of arguments. This does not lead to loss of expressivity, though: As shown in \cite{Cooper:2009:RC:1599410.1599439} one can translate a program written in the calculus from Section~\ref{lab:calculus} to a program written in Haskell using the \lang implementation by performing defunctionalization.
 
-Using this implementation we have constructed three use cases for DFLAMIO. The first use case is a distributed bank, in which users can perform RPCs to handle transactions across accounts between different users. The second use case is a social jukebox service \cite{Lots of citations} where people can schedule music during social gatherings. The third use case is a secure database containing confidential information about government agencies.
+Using this implementation we have constructed three use cases for \lang. The first use case is a distributed bank, in which users can perform RPCs to handle transactions across accounts between different users. The second use case is a social jukebox service \cite{Lots of citations} where people can schedule music during social gatherings. The third use case is a secure database containing confidential information about government agencies.
 
 \subsection{Secure banking}
 Idea: The bank is a shared resource where clients can invoke RPCs to perform transactions.
@@ -80,7 +125,7 @@ Interface for the social jukebox:
 \begin{enumerate}
     \item \textsf{vote: Song $\rightarrow$ LIO Unit}
     \item \textsf{addCandidate: Song $\rightarrow$ LIO ()}
-    \item \textsf{getCandidates: Song $\rightarrow$ [(String, [Labeled Principal])]}
+    \item \textsf{getCandidates: Song $\rightarrow$ LIO [(String, [Labeled Principal])]}
     \item \textsf{playSong: Song $\rightarrow$ LIO Unit}
 \end{enumerate}
 Note that now one can implement a function \textsf{hasVoted: Principal $\rightarrow$ Song $\rightarrow$ LIO Bool} that uses \textsf{getCandidates}.
