@@ -1,0 +1,117 @@
+We have implemented \lang as a library in Haskell. The code is approximately 2200 lines of code and uses the efficient query resolution algorithm for authorization queries described in \cite{Arden:2015:FA:2859845.2859998}, along with additional layers of caching to avoid repeated network communication. To simplify the implementation we differ from the calculus in that an RPC invocation does not send the function across the network. Instead, the receiver of the RPC has a table mapping identifiers to functions, and the caller sends this identifier along with the list of arguments. This does not lead to loss of expressivity, though: As shown in \cite{Cooper:2009:RC:1599410.1599439} one can translate a program written in the calculus from Section~\ref{lab:calculus} to a program written in Haskell using the \lang implementation by performing defunctionalization.
+
+Using this implementation we have constructed three use cases for \lang. The first use case is a distributed bank, in which users can perform RPCs to handle transactions across accounts between different users. The second use case is a social jukebox service \cite{Lots of citations} where people can schedule music during social gatherings. The third use case is a secure database containing confidential information about government agencies.
+
+\subsection{Secure banking}
+We first consider a secure banking service $S$. For simplicity we assume the language has been extended with numbers and strings. A user is represented by a named principal $n$, and each user has an account consisting of a single nonnegative number representing their balance. A user authenticates themselves by invoking the function $\mathtt{login}$ which received the user, a labeled string representing the password, and a callback to invoke if the authentication succeeds. Furthermore, we assume a primitive $\mathtt{transfer}$ for transferring money between two accounts. The signatures of these functions is given in Figure~\ref{fig:sec-banking-sigs}.
+Using these primitive we can model several complex scenarios. For instance in Figure~\ref{fig:sec-bank-alice-send-to-bob}, Alice authenticates with the bank and sends Bob 100 dollars.
+
+In order for Alice to authenticate with the server she needs to provide a password, and the password needs to be labeled with a principal such that only the server can read the password. Thus the server must trust the confidentiality of Alice $\conf{A}$ to be able to enforce the confidentiality of the server $\conf{S}$. 
+
+Since the transfer will reveal to Bob the fact that Alice has at least 100 dollars on her account, she needs to add a delegation stating that Bob is allowed to learn this information. This delegation is controlled by Alice and Alice must allow this trust to be known to the server who is the principal that will decide whether to allow the transfer. This decision is reflected by the label placed on the delegation.
+
+Another scenario is modeled in Figure~\ref{fig:sec-bank-alice-banks-for-bob}, where we assume that Alice is already logged in and Bob gives Alice to act on his behalf. Specifically, he allows Alice to perform transfers from his account. In order to do this Bob's create a delegation labeled with his own integrity stating that he trusts Alice. The situation is then the same as in the previous, where Charlie must be allowed to learn the lower bound of $50$ on Bob's account. But since this is transfer is performed Alice, it needs to have Alice's integrity. Thus Alice delegates Bob's confidentiality to Charlie's confidentiality. Finally, in order for the server to trust Alice's delegations the server needs to trust the integrity of Alice. This is reflected in the three delegations shown in Figure~\ref{fig:sec-bank-alice-banks-for-bob}.
+
+\begin{figure}
+    \centering
+    \begin{align*}
+\mathtt{login}&: \labeltype \to \labeled{\mathtt{String}} \\ &\quad \to \liotype{\unit} \to \liotype{\unit}\\
+\mathtt{transfer}&: \labeltype \to \labeltype \to \Integer \to \liotype{\unit}
+\end{align*}
+    \caption{Primitives for implementing secure banking.}
+    \label{fig:sec-banking-sigs}
+\end{figure}
+
+\begin{figure}
+\centering
+\begin{lstlisting}
+((*@$\lambda^{\text{A}}$@*) _ .
+  ((*@$\lambda^{\text{S}}$@*) _ . assume (*@$\conf{$A$}$@*) (*@$\actsfor$@*) (*@$\conf{$S$}$@*) @ (*@$\integ{$S$}$@*)) ()
+  pw <- label "password" ((*@$\conf{$S$} \conj \integ{$ A$}$@*))
+  login A pw
+    (withScope
+      assume (*@$\conf{$B$}$@*) (*@$\actsfor$@*) (*@$\conf{$A$}$@*) @ ((*@$\conf{\bot} \conj \integ{$ A$}$@*))
+      transfer A B 100)) ()
+\end{lstlisting}
+\caption{Alice authenticates with the server and sends money to Bob.}
+\label{fig:sec-bank-alice-send-to-bob}
+\end{figure}
+
+\begin{figure}
+\centering
+\begin{lstlisting}
+((*@$\lambda^{\text{A}}$@*) _ .
+  ((*@$\lambda^{\text{S}}$@*) _ . assume (*@$\conf{$A$}$@*) (*@$\actsfor$@*) (*@$\conf{$S$}$@*) @ (*@$\conf{\bot} \conj \integ{$ S$}$@*)) ()
+  ((*@$\lambda^{\text{B}}$@*) _ . assume A (*@$\actsfor$@*) B @ (*@($\conf{\bot} \conj \integ{$ B$}$)@*)) ()
+  assume (*@$\conf{$C$}$@*) (*@$\actsfor$@*) (*@$\conf{$B$}$@*) @ (*@($\conf{\bot} \conj \integ{$ A$}$)@*)
+  transfer A B 50)) ()
+\end{lstlisting}
+\caption{Alice performs a transfer on behalf of Bob.}
+\label{fig:sec-bank-alice-banks-for-bob}
+\end{figure}
+
+\subsection{A secure social jukebox service}
+We now consider a secure version of a social jukebox service. A group of principals $\Nameset$ is gathered at a party and want to vote on which songs should be played at the party. Furthermore, the principals do not want to have their votes leaked to the other principals. We assume a distinguished principal $\mathsf{J} \in \Nameset$ (for jukebox) representing a machine supporting the following primitive functions.
+\begin{align*}
+\mathtt{vote}&: \labeled{\String} \rightarrow \liotype{\unit}\\
+\mathtt{candidates}&: \unit \rightarrow \liotype{\listtype{\pair{\String}{\listtype{\labeled{\labeltype}}}}}\\
+\mathtt{play}&: \String \rightarrow \liotype{\unit}
+\end{align*}
+The function $\mathtt{vote}$ casts a vote for the song represented by the labeled string argument. The integrity of the labeled string defines the voter of this song.
+
+As we don't want to have a party principal vote multiple times for the same song, we need to remember which principals have voted for each song. The function $\mathtt{candidates}$ returns a list of pairs $(s_1, \mathit{vs}_1), \dots, (s_n, {\mathit{vs}}_n)$ consisting of a song title $s_i$ and the list of principals who have voted for this song $\mathit{vs}_i$. As an additional feature to the party guests, we allow this function to be invoked by any principal so that the party principals can see which songs it is currently possible to vote for. But, as we do not want to reveal the identity of each voter to the guests, each element in the list $\mathit{vs}_i$ is is labeled with the confidentiality of $\mathsf{J}$ such that none of the untrusted party participants\footnote{Principals $p$ such that $\conf{\mathsf{J}} \not\actsfor p$.} will learn which participant votes for which song. So any principal can learn which songs for which there exists some principal that has voted for the song, but only the principals trusted with the confidentiality of $J$ can learn the identity of the voters.
+
+Figure~\ref{fig:jukebox-alice-votes-for-taylor-swift} shows an example of Alice voting for ``Shake it Off'' by Taylor Swift. First, the jukebox $J$ allows Alice to label data with the confidentiality of the jukebox such that she can send the song vote. This delegation must have a confidentiality label such that Alice is allowed to use this delegation. By making the presence of the delegation public this is guaranteed to always be the case. Now Alice is allowed to label the song such that only the server will be able to access the content, and the integrity of the labeled data will reveal that this vote was cast by Alice.
+
+\begin{figure}
+\centering
+\begin{lstlisting}
+voted = (*@$\lambda^{\text{J}}$@*) s p .
+  c <- candidates
+  anyM ((*@$\lambda^{\text{A}}$@*) (s, vs). if s = s' then
+                        vs' <- mapM unlabel vs
+                        return (member p vs')
+                      else return false) c
+\end{lstlisting}
+\caption{Preventing any principal from double voting}
+\label{fig:prevent-double-voting}
+\end{figure}
+
+Figure~\ref{fig:prevent-double-voting} shows how the jukebox can use $\mathtt{candidates}$ to implement a function $\mathtt{voted}: \String \rightarrow \labeltype \rightarrow \liotype{\bool}$ such that $\mathsf{voted}\; s\; p$ evaluates to $\true$ if and only if $p$ has voted for song $s$. The function unlabels the list of principals and checks if $p$ is a member of the list. Since each principal is labeled with some principal $q$ such that $\conf{q} \actsfor \conf{J}$ only principals for which $J$ has delegated confidentiality can unlabel the list elements.
+
+\begin{figure}
+\centering
+\begin{lstlisting}
+((*@$\lambda^{\text{A}}$@*) _ .
+  ((*@$\lambda^{\text{J}}$@*) _ . assume (*@$\conf{$A$}$@*) (*@$\actsfor$@*) (*@($\conf{$J$}$@*) @ (*@$\conf{\bot} \conj \integ{$ J$}$)@*)) ()
+  s <- label "Shake It Off" (*@($\conf{$J$} \conj \integ{$ A$}$)@*)
+  vote s) ()
+\end{lstlisting}
+\caption{Alice places a secret vote for Taylor Swift}
+\label{fig:jukebox-alice-votes-for-taylor-swift}
+\end{figure}
+
+\subsection{Government agency records}
+As a final example demonstrating the usefulness of \lang, we show how confidential delegations can be used to keep government agency records. Figure~\ref{fig:govt-alice-checks-bob} shows an example of a scenario where Alice verifies that Bob is also a secret agent. First, Alice and Bob are both hired as secret agents by the CIA by delegating the principal $\owner{\text{CIA}}{\text{agents}}$ to each of them. Obviously not everyone should know that they are secret agents, and so we put the confidentiality of this delegation to be $\owner{\text{CIA}}{\text{agents}}$, such that only agents can learn the identity of other agents.
+
+At some point Alice meets Bob ``in the field'' and wants to verify his claim that he is a secret agent for the CIA. In order for Alice to verify this she has to check if the principal $\owner{\text{CIA}}{\text{agents}}$ delegates to Bob. For Alice to prove this query she uses the \ruleref{Fwd} rule and delegates the query to CIA. Thus, in order to trust the result of the query her integrity must delegate to CIA's integrity.
+Alice can now trust the answer received from CIA and know if Bob is also a secret agent.
+
+\begin{figure}
+\centering
+\begin{lstlisting}
+  ((*@$\lambda^{\text{CIA}}$@*) _ .
+    assume A (*@$\actsfor$@*) (*@$\owner{\text{CIA}}{\text{agents}}$@*) @ (*@($\conf{\owner{\text{CIA}}{\text{agents}}} \conj \integ{$ CIA$}$)@*)
+    assume B (*@$\actsfor$@*) (*@$\owner{\text{CIA}}{\text{agents}}$@*) @ (*@($\conf{\owner{\text{CIA}}{\text{agents}}} \conj \integ{$ CIA$}$)@*)) ()
+  [...]
+  ((*@$\lambda^{\text{A}}$@*) _ . assume (*@$\integ{$CIA$}$@*) (*@$\actsfor$@*) (*@$\integ{$A$}$@*) @ A) ()
+  [...]
+  ((*@$\lambda^{\text{A}}$@*) _ .
+    b <- B (*@$\actsfor$@*) (*@$\owner{\text{CIA}}{\text{agents}}$@*)
+    if b then
+      // A can trust B to be a secret agent
+    else [...]) ()
+\end{lstlisting}
+\caption{Alice verifies that Bob is also a secret agent for CIA}
+\label{fig:govt-alice-checks-bob}
+\end{figure}

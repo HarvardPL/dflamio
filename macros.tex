@@ -7,7 +7,7 @@
 \newcommand{\disj}{\mathrel{\lor}}
 \newcommand{\conf}[1]{#1^{\rightarrow}}
 \newcommand{\integ}[1]{#1^{\leftarrow}}
-\newcommand{\owner}[2]{{#1}^{:#2}}
+\newcommand{\owner}[2]{#1:#2}
 \newcommand{\addr}{a}
 \newcommand{\Addr}{A}
 \newcommand{\val}{v}
@@ -81,6 +81,7 @@
 \newcommand{\refkw}{\mathsf{Ref}}
 \NewDocumentCommand{\reftype}{ O{} m}{\refkw_{#1}\;#2}
 \newcommand{\store}{\phi}
+\newcommand{\ruleref}[1]{\textsc{#1}}
 
 \definecolor{verylightgray}{rgb}{0.9,0.9,0.9}
 \newcommand{\graybox}[1]{\fcolorbox{white}{verylightgray}{\ensuremath{#1}}}

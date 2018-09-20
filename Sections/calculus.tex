@@ -1,0 +1,30 @@
+Figure~\ref{fig:language-syntax} shows the syntax of \lang. The shaded regions describe syntax not part of the surface language, but rather constructs used during evaluation. Terms is ranged over by the symbol $\val$ and include boolean literals, the unit value, runtime representations of principals, addresses and variables, abstractions $\abs{n}{\lb{p}{\type}}{x}{\expr}$, which are parameterized over the principal name $n$ on which to evaluate the expression $\expr$, and the label on the value returned from invoking the abstraction.
+
+\begin{figure*}
+    \centering
+    \begin{tabular}{l}
+         $\val ::= \true \mid \false \mid () \mid p \mid \addr \mid x \mid \abs{n}{\lb{p}{\type}}{x}{\expr} \mid (\expr, \expr) \mid \cons{\expr}{\expr} \mid \nil \mid \graybox{\lb{p}{\expr}} \mid \graybox{\lio{\expr}}$ \\
+         $\begin{aligned}[t]
+         \expr ::=&\;\; \val \mid \app{\expr}{\expr} \mid \proj{i}{\expr} \mid \ifexpr{\expr}{\expr}{\expr} \mid \case{\expr}{\expr}{\expr} \mid \fix{\expr} \mid \return{\expr} \mid \bind{\expr}{\expr} \\ &\mid
+         \new{\expr}{\expr} \mid \readref{\expr} \mid \writeref{\expr}{\expr} \mid \Label{\expr}{\expr} \mid \unlabel{\expr} \mid
+         \tolabeled{\expr}{\expr} \mid \getlabel \\ &\mid \getclearance \mid \labelof{\expr} \mid \withscope{\expr} \mid \withstrategy{\expr}{\expr} \\ &\mid \adddelegate{\expr}{\expr}{\expr} \mid \removedelegate{\expr}{\expr}{\expr} \mid \getstrategy \mid \expr \actsfor \expr \\ &\mid
+         \graybox{\wait{n}[\type]} \mid \graybox{\resetstrategy{\overline{p}}{\expr}} \mid \graybox{\resetTolabeled{p}{q}{\expr}} \mid \graybox{\resetscope{\scope}{\expr}}
+         \end{aligned}$ \\
+         %$\overline{\expr} ::= \expr; \overline{\expr} \mid \termsym$ \\
+         $\type ::= \bool \mid \unit \mid \func{\type}{\type} \mid \listtype{\type} \mid \pair{\type}{\type} \mid \labeltype \mid \labeled{\type} \mid \liotype{\type} \mid \reftype[n]{\type}$ \\
+    \end{tabular}
+    \caption{The \lang{} language}
+    \label{fig:language-syntax}
+\end{figure*}
+
+Talk about:
+\begin{enumerate}
+    \item The grammar
+    \item The evaluation context
+    \item The local reduction rules
+    \item Discuss the usage of strategies
+    \item The global reduction rules
+    \item The type system
+    \item Show preservation
+    \item Talk about the invariant used for preservation?
+\end{enumerate}
