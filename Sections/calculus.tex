@@ -1,4 +1,12 @@
-Figure~\ref{fig:language-syntax} shows the syntax of \lang. The shaded regions describe syntax not part of the surface language, but rather constructs used during evaluation. Terms is ranged over by the symbol $\val$ and include boolean literals, the unit value, runtime representations of principals, addresses and variables, abstractions $\abs{n}{\lb{p}{\type}}{x}{\expr}$, which are parameterized over the principal name $n$ on which to evaluate the expression $\expr$, and the label on the value returned from invoking the abstraction.
+This section introduces a formalization of the \lang{} language. We first introduce the syntax and semantics of the language, and afterwards present the judgment for deriving trust between principals in the language. Finally, this section presents a type system for \lang.
+
+\subsection{Syntax}
+
+Figure~\ref{fig:language-syntax} shows the syntax of \lang. The meta-variable $\val$ ranges over terms, which include boolean literals, the unit value, runtime representations of principals, addresses and variables, abstractions $\abs{n}{\lb{p}{\type}}{x}{\expr}$, which are parameterized over the principal name $n$ on which to evaluate the expression $\expr$, and the label on the value returned from invoking the abstraction.
+
+Expressions are ranged over by the meta-variable $\expr$ and include terms, applications, projections, elimination of booleans and lists, recursive functions, monadic expressions using $\returnkw$ and $\bindop$ (pronounced ``bind''), allocation, reading and writing of references. Following LIO \cite{SRMMlio} the language supports operations for labeling and unlabeling expressions, and the operation $\tolabeledkw$ for controlling label-creep \cite{where do they introduce label-creep?}. The operations $\getlabel$ and $\getclearance$ returns the current label and clearance respectively, and $\labelofkw$ returns the label of a labeled expression. Following \cite{Extensible Access Control with Authorization Contracts} the scope of delegations is ``fluid'' and the operation $\withscopekw$ creates a new fluid scope. Strategies (introduced later in this section) is introduced using the $\withstrategykw$ operation, and can be obtained using $\getstrategy$. Finally, delegations an be added and queried. The shaded regions describe syntax not part of the surface language, but rather constructs used during evaluation.
+
+Finally, types are ranged over by the meta-variable $\type$ and include standard types like the boolean type, the unit type, function, list and product types. Non-standard types include the type of FLAM principals, the type of labeled values, the type of LIO computations and location-aware reference types.
 
 \begin{figure*}
     \centering
@@ -7,8 +15,7 @@ Figure~\ref{fig:language-syntax} shows the syntax of \lang. The shaded regions d
          $\begin{aligned}[t]
          \expr ::=&\;\; \val \mid \app{\expr}{\expr} \mid \proj{i}{\expr} \mid \ifexpr{\expr}{\expr}{\expr} \mid \case{\expr}{\expr}{\expr} \mid \fix{\expr} \mid \return{\expr} \mid \bind{\expr}{\expr} \\ &\mid
          \new{\expr}{\expr} \mid \readref{\expr} \mid \writeref{\expr}{\expr} \mid \Label{\expr}{\expr} \mid \unlabel{\expr} \mid
-         \tolabeled{\expr}{\expr} \mid \getlabel \\ &\mid \getclearance \mid \labelof{\expr} \mid \withscope{\expr} \mid \withstrategy{\expr}{\expr} \\ &\mid \adddelegate{\expr}{\expr}{\expr} \mid \removedelegate{\expr}{\expr}{\expr} \mid \getstrategy \mid \expr \actsfor \expr \\ &\mid
-         \graybox{\wait{n}[\type]} \mid \graybox{\resetstrategy{\overline{p}}{\expr}} \mid \graybox{\resetTolabeled{p}{q}{\expr}} \mid \graybox{\resetscope{\scope}{\expr}}
+         \tolabeled{\expr}{\expr} \mid \getlabel \\ &\mid \getclearance \mid \labelof{\expr} \mid \withscope{\expr} \mid \expr \actsfor \expr \mid \withstrategy{\expr}{\expr} \\ &\mid \adddelegate{\expr}{\expr}{\expr} \mid \getstrategy \mid \graybox{\wait{n}[\type]} \mid \graybox{\resetstrategy{\overline{p}}{\expr}} \\ &\mid \graybox{\resetTolabeled{p}{q}{\expr}} \mid \graybox{\resetscope{\scope}{\expr}}
          \end{aligned}$ \\
          %$\overline{\expr} ::= \expr; \overline{\expr} \mid \termsym$ \\
          $\type ::= \bool \mid \unit \mid \func{\type}{\type} \mid \listtype{\type} \mid \pair{\type}{\type} \mid \labeltype \mid \labeled{\type} \mid \liotype{\type} \mid \reftype[n]{\type}$ \\
@@ -16,6 +23,51 @@ Figure~\ref{fig:language-syntax} shows the syntax of \lang. The shaded regions d
     \caption{The \lang{} language}
     \label{fig:language-syntax}
 \end{figure*}
+
+\subsection{Semantics}
+The semantics of \lang{} can be split into two judgments: Local reduction rules, which evaluates an expression on a specific node $n$; and global reduction rules, which models remote procedure calls and returns. We first present the local reduction rules.
+
+\paragraph{Local semantics}
+The semantics of local reduction rules is given by a structured operational semantics with evaluation contexts \cite{cite-felleisen-duh}. We elide the definition of the evaluation context, as this is mostly standard.
+
+We further split the local reduction rules into two categories: Pure reduction rules $\steppure{\expr}{\expr'}$ which reduces independent of memories and independent of which principal is evaluating the expression. The pure reduction rules are seen in Figure~\ref{fig:pure-reductions}. Pure reductions include packing terms into monadic contexts, monadically binding terms, recursive applications, projecting pairs, eliminating booleans and lists and obtaining the label of a labeled value.
+
+\begin{figure}
+    \centering
+    \begin{mathpar}
+    \inferrule{}{\steppure{\efill{\return{\val}}} {\efill{\lio{\val}}}}
+    \and
+    \inferrule{}{\steppure{\efill{\bind{\lio{\val}}{\expr}}}{\efill{\app{\expr}{\val}}}}
+    \and
+    \inferrule{}{\steppure{\efill{\fix{\expr}}}{\efill{\app{\expr}{(\fix{\expr})}}}}
+    \and
+    \inferrule{}{\steppure{\efill{\proj{i}{(\val_1, \val_2)}}}{\efill{\val_i}}}
+    \and
+    \inferrule{}{\steppure{\efill{\ifexpr{b}{\expr_{\true}}{\expr_{\false}}}}{\efill{\expr_b}}}
+    \and
+    \inferrule{}{\steppure{\efill{\case{\nil}{\expr_1}{\expr_2}}}{\efill{\expr_1}}}
+    \and
+    \inferrule{}{\steppure{\efill{\case{(\cons{\expr_\hd}{\expr_\tl})}{\expr_1}{\expr_2}}}{ \efill{\app{\app{\expr_2}{\expr_\hd}}{\expr_\tl}}}}
+    \and
+    \inferrule{}{\steppure{\efill{\labelof{(\lb{p}{\expr})}}}{\efill{p}}}
+    \and
+    \inferrule{\steppure{\expr}{ \expr'}}{\steppure{\efill{\expr}}{\efill{\expr'}}}
+    \end{mathpar}
+    \caption{Pure reductions for \lang.}
+    \label{fig:pure-reductions}
+\end{figure}
+
+The remaining local reductions all depend either on memory or on the identity of the principal which evaluates the expression.
+
+Before introducing the small-step reduction for general local reduction, we introduce some necessary concepts which all play a role for the remaining local reduction rules. A store $\store: \Addr \to \val$ is a mapping from addresses to values.
+
+These rules define a small-step semantics $\step{n; \env}{\config{\store}{\expr}}{\config{\store'}{\expr'}}{\sigma}$ on local configurations $\config{\store}{\expr}$ where $\store$ represents the current store and $\expr$ is the expression being evaluated. The global environment $\env: \Nameset \to \sigma$ is a mapping from names to local environments $\sigma$. A local environment contains the current label $\lblkw$, the set of delegations local to the principal $\scope$ and the current strategy of the principal. We use record notation for these and write $\sigma.\lblkw$, $\sigma.\scope$ and $\sigma.\strategy$ respectively.
+
+Figure~\ref{fig:impure-reductions} in the appendix shows the local reduction rules.
+
+\paragraph{Global semantics}
+
+\subsection{Deriving trust relationship in \lang}
 
 Talk about:
 \begin{enumerate}
