@@ -1,6 +1,32 @@
+In this section we define the attacker model and show the security guarantees given by \lang. Formally, an attacker is some principal $A$. Note that this principal might be a conjunction of named principals $n_1 \wedge \dots \wedge n_k$ representing a set of $k$ colluding principals.
+
+\subsection{Trace semantics}
+We express the attacker model in terms of a trace semantics, in which certain operations in the language emit \emph{events} which are may or may not be observable by $A$. The grammar for events is given in Figure~\ref{fig:event-syntax}. An non-empty event $\event$ contains the type of the event, the current environment when the event was emitted, and the node that emitted the event. An attacker observes modifications to memory (ie., writes an allocations) locally on a machine and remote procedure calls and returns across machines. This choice correspond to a typical Dolev-Yao attacker model \cite{Dolev:1981:SPK:1382435.1382728}.
+
+We call a sequence of events a trace, and we write the concatenation of traces as $t_1 \cdot t_2$, and we write the empty trace as $\varepsilon$. Given a trace $t$ the observable trace of $t$ is the trace $t \upharpoonright A$, defined as
+\begin{align*}
+\varepsilon \upharpoonright A &= \varepsilon\\
+((\alpha, \env, n) \cdot t) \upharpoonright A &=
+\begin{cases}
+(\alpha, \env, n) \cdot (t \upharpoonright A) & \nopostflowstoquery{n; \env}{\env_n.\lblkw}{A} \\
+t \upharpoonright A & \text{otherwise}
+\end{cases}
+\end{align*}
+
+\begin{figure}
+\centering
+\begin{align*}
+\event &::= (\alpha, \env, n) \mid \varepsilon\\
+\alpha &::= \mathsf{write}(\addr, \expr) \mid \mathsf{new}(\addr, \expr) \mid \mathsf{call}(\expr, n) \\ &\quad \mid \mathsf{ret}(\val, n) \mid \mathsf{stop}(\val, n)
+\end{align*}
+\caption{The syntax of events.}
+\label{fig:event-syntax}
+\end{figure}
+
 Talk about:
 \begin{enumerate}
     \item Traces
+    \item Good declassifications
     \item Define knowledge
     \item Define TINI
     \item Show the TINI statement

@@ -13,9 +13,9 @@ Finally, types are ranged over by the meta-variable $\type$ and include standard
     \begin{tabular}{l}
          $\val ::= \true \mid \false \mid () \mid p \mid \addr \mid x \mid \abs{n}{\lb{p}{\type}}{x}{\expr} \mid (\expr, \expr) \mid \cons{\expr}{\expr} \mid \nil \mid \graybox{\lb{p}{\expr}} \mid \graybox{\lio{\expr}}$ \\
          $\begin{aligned}[t]
-         \expr ::=&\;\; \val \mid \app{\expr}{\expr} \mid \proj{i}{\expr} \mid \ifexpr{\expr}{\expr}{\expr} \mid \case{\expr}{\expr}{\expr} \mid \fix{\expr} \mid \return{\expr} \mid \bind{\expr}{\expr} \\ &\mid
+         \expr &::= \val \mid \app{\expr}{\expr} \mid \proj{i}{\expr} \mid \ifexpr{\expr}{\expr}{\expr} \mid \case{\expr}{\expr}{\expr} \mid \fix{\expr} \mid \return{\expr} \mid \bind{\expr}{\expr} \\ &\quad \mid
          \new{\expr}{\expr} \mid \readref{\expr} \mid \writeref{\expr}{\expr} \mid \Label{\expr}{\expr} \mid \unlabel{\expr} \mid
-         \tolabeled{\expr}{\expr} \mid \getlabel \\ &\mid \getclearance \mid \labelof{\expr} \mid \withscope{\expr} \mid \expr \actsfor \expr \mid \withstrategy{\expr}{\expr} \\ &\mid \adddelegate{\expr}{\expr}{\expr} \mid \getstrategy \mid \graybox{\wait{n}[\type]} \mid \graybox{\resetstrategy{\overline{p}}{\expr}} \\ &\mid \graybox{\resetTolabeled{p}{q}{\expr}} \mid \graybox{\resetscope{\scope}{\expr}}
+         \tolabeled{\expr}{\expr} \mid \getlabel \\ &\quad \mid \getclearance \mid \labelof{\expr} \mid \withscope{\expr} \mid \expr \actsfor \expr \mid \withstrategy{\expr}{\expr} \\ &\quad \mid \adddelegate{\expr}{\expr}{\expr} \mid \getstrategy \mid \graybox{\wait{n}[\type]} \mid \graybox{\resetstrategy{\overline{p}}{\expr}} \\ &\quad \mid \graybox{\resetTolabeled{p}{q}{\expr}} \mid \graybox{\resetscope{\scope}{\expr}}
          \end{aligned}$ \\
          $\type ::= \bool \mid \unit \mid \func{\type}{\type} \mid \listtype{\type} \mid \pair{\type}{\type} \mid \labeltype \mid \labeled{\type} \mid \liotype{\type} \mid \reftype[n]{\type}$ \\
     \end{tabular}
