@@ -165,15 +165,43 @@ Figure~\ref{fig:act-for-judgment} and Equation~\eqref{eq:interpret-del} shows th
 \end{figure}
 
 \subsection{A type system for \lang.}
+Since \lang{} controls information-flows via dynamic checks, the type system for \lang{} is straightforward. We write $\hastype{n; \tenv}{\expr}{\type}$ when expression $\expr$ can be given type $\type$ in a global type environment $\tenv: \Nameset \rightarrow (\Var \to \type)$ on machine $n$. Excerpt of the judgment is shown in Figure~\ref{fig:type-judgment}. Rule \ruleref{T-Principal} states that principals have type $\labeltype$, and \ruleref{T-Var} states that variable types are given by the global type environment $\tenv$. Rule \ruleref{T-Ref} simplifies the statement of Theorem~\ref{thm:preservation} by having the typing environment denote the type of both variables and addresses. We say an address belongs to node $n$ if $\hastype{n; \tenv}{n}{\reftype[n]{\type}}$. Rule \ruleref{T-Abs} states that an abstraction has a function type and that, when checking the type of the body, the typing environment for node $m$ is used, where $m$ is the machine upon which the code will be evaluated. Rule \ruleref{T-Lab} states that labeled expressions have labeled types. Rules \ruleref{T-Lio}, \ruleref{T-Return} and \ruleref{T-Bind} are standard typing rules for monadic expressions. Rules \ruleref{T-New} states that when a reference is allocated on a node $n$ the type of the address returned will belong to $n$. Rule \ruleref{T-Read} states that a reference can only be read on a machine on which the address belongs. Finally, \ruleref{T-Wait} states that the type attached to a waiting expression is the type of the expression. The rules \ruleref{T-Wait} and \ruleref{T-Abs} are closely connected in that an RPC will evaluate an abstraction to a waiting expression, meaning that the typing rules for these expressions should match.
 
-Talk about:
-\begin{enumerate}
-    \item The grammar
-    \item The evaluation context
-    \item The local reduction rules
-    \item Discuss the usage of strategies
-    \item The global reduction rules
-    \item The type system
-    \item Show preservation
-    \item Talk about the invariant used for preservation?
-\end{enumerate}
+\paragraph{Store typing}
+Given a global typing environment $\tenv$ we write $\wf{\tenv}{\store}$ if, for all $\addr$ such that $\store(\addr) = \lb{p}{\expr}$ and $\tenv(\addr) = \reftype[n]{\type}$ it holds that $\hastype{n; \tenv}{\expr}{\type}$. We write $\hastype{n; \tenv}{\config{\store}{\expr}}{\type}$ if $\wf{\tenv}{\store}$ and $\hastype{n; \tenv}{\expr}{\type}$. We lift this definition to global configurations and write $\hastype[m]{\tenv}{\gconfig{n}{\env}{S}}{\type}$ if for all $n' \in \Nameset$ there exists a type $\type'$ such that $\hastype{n'; \tenv}{S_{n'}}{\type'}$, and furthermore, when $n' = m$ we have $\type' = \type$.
+
+\paragraph{Preservation}
+As the program allocates references during evaluation, the typing environment needs to incorporate these addresses accordingly. Thus Theorem~\ref{thm:preservation} shows that, if a configuration is well-typed and takes a single step, there will exist a global typing environment, which is an extension of the old typing environment, such that the new configuration is well-typed.
+
+\begin{theorem}[Preservation]\label{thm:preservation}
+If $\hastype[m]{\tenv}{\gconfig{n}{\env}{S}}{\type}$ and $\gconfig{n}{\env}{S} \gstepsto \gconfig{n'}{\env'}{S'}$ then there exists $\tenv'$ such that $\hastype[m]{\tenv'}{\gconfig{n'}{\env'}{S'}}{\type}$.
+\end{theorem}
+
+\begin{figure}
+\centering
+\begin{mathpar}
+\inferrule[T-Principal]{~}{\hastype{n; \tenv}{p}{\labeltype}}
+\and
+\inferrule[T-Var]{\tenv_n(x) = \type}{\hastype{n; \tenv}{x}{\type}}
+\and
+\inferrule[T-Ref]{\tenv_n(\addr) = \reftype[m]{\type}}{\hastype{n; \tenv}{\addr}{\reftype[m]{\type}}}
+\and
+\inferrule[T-Abs]{\hastype{m; \tenv, x : \type_1}{\expr}{\liotype{\type_2}} \\\\ \type = \func{\type_1}{\liotype{(\labeled{\type_2})}}}{\hastype{n; \tenv}{\abs{p}{\lb{\type_2}{m}}{x}{\expr}}{\type}}
+\and
+\inferrule[T-Lab]{\hastype{n; \tenv}{\expr_2}{\type} \\\\ \hastype{n; \tenv}{\expr_1}{\labeltype}}{\hastype{n; \tenv}{\lb{\expr_1}{\expr_2}}{\labeled{\type}}}
+\and
+\inferrule[T-Lio]{\hastype{n; \tenv}{\expr}{\type}}{\hastype{n; \tenv}{\lio{\expr}}{\liotype{\type}}}
+\and
+\inferrule[T-Return]{\hastype{n; \tenv}{\expr}{\type}}{\hastype{n; \tenv}{\return{\expr}}{\liotype{\type}}}
+\and
+\inferrule[T-Bind]{\hastype{n; \tenv}{\expr_1}{\liotype{\type_1}} \\\\ \hastype{n; \tenv}{\expr_2}{\func{\type_1}{\liotype{\type_2}}}}{\hastype{n; \tenv}{\bind{\expr_1}{\expr_2}}{\liotype{\type_2}}}
+\and
+\inferrule[T-New]{\hastype{n; \tenv}{\expr_1}{\labeltype} \\\\ \hastype{n; \tenv}{\expr_2}{\type} \\\\ \type' = \liotype{(\reftype[n]{\type})}}{\hastype{n; \tenv}{\new{\expr_1}{\expr_2}}{\type'}}
+\and
+\inferrule[T-Read]{\hastype{n; \tenv}{\expr}{\reftype[n]{\type}}}{\hastype{n; \tenv}{\readref{\expr}}{\liotype{\type}}}
+\and
+\inferrule[T-Wait]{\type' = \liotype{(\labeled{\type})}}{\hastype{n; \tenv}{\wait{m}[\type]}{\type'}}
+\end{mathpar}
+\caption{Typing judgment for \lang.}
+\label{fig:type-judgment}
+\end{figure}

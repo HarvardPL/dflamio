@@ -12,6 +12,7 @@
 \newcommand{\Addr}{A}
 \newcommand{\val}{v}
 \newcommand{\expr}{e}
+\newcommand{\Var}{\mathsf{Var}}
 \newcommand{\true}{\mathsf{true}}
 \newcommand{\false}{\mathsf{false}}
 \newcommand{\abs}[4]{\lambda^{#1}_{#2}\,#3.\,#4}
@@ -76,10 +77,10 @@
 \newcommand{\listtype}[1]{\lbrack#1\rbrack}
 \newcommand{\labeltype}{\mathsf{Principal}}
 \newcommand{\labeledkw}{\mathsf{Labeled}}
-\newcommand{\labeled}[1]{\labeledkw\;#1}
-\newcommand{\liotype}[1]{\liokw\;#1}
+\newcommand{\labeled}[1]{\labeledkw\,#1}
+\newcommand{\liotype}[1]{\liokw\,#1}
 \newcommand{\refkw}{\mathsf{Ref}}
-\NewDocumentCommand{\reftype}{ O{} m}{\refkw_{#1}\;#2}
+\NewDocumentCommand{\reftype}{ O{} m}{\refkw_{#1}\,#2}
 \newcommand{\store}{\phi}
 \newcommand{\ruleref}[1]{\textsc{#1}}
 \definecolor{verylightgray}{rgb}{0.9,0.9,0.9}
@@ -121,6 +122,10 @@
 \WithSuffix\newcommand\actsforquerymany*[5]{#1 \vdash^*_{#2} #3 \actsfor #4 : #5}
 \newcommand{\actsforquerysmany}[5]{#1 \vdash_{#2} #3 \actsfor #4 : #5}
 
+\NewDocumentCommand{\hastype}{ O{} m m m }{#2 \vdash_{#1} #3 : #4}
+\newcommand{\tenv}{\Gamma}
+\newcommand{\wf}[2]{#1 \vdash #2}
+
 \definecolor{bluekeywords}{rgb}{0.13, 0.13, 1}
 \definecolor{greencomments}{rgb}{0, 0.5, 0}
 \definecolor{redstrings}{rgb}{0.9, 0, 0}
@@ -149,3 +154,5 @@
     },
     emphstyle={\bfseries}
 }
+
+\newtheorem{theorem}{Theorem}[section]
