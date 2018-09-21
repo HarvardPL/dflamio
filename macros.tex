@@ -7,7 +7,7 @@
 \newcommand{\disj}{\mathrel{\lor}}
 \newcommand{\conf}[1]{#1^{\rightarrow}}
 \newcommand{\integ}[1]{#1^{\leftarrow}}
-\newcommand{\owner}[2]{#1:#2}
+\newcommand{\owner}[2]{#1\!:\!#2}
 \newcommand{\addr}{a}
 \newcommand{\Addr}{A}
 \newcommand{\val}{v}
@@ -88,6 +88,7 @@
 \NewDocumentCommand{\stepsto}{ O{} O{} }{\xrightarrow[#1]{\mathmakebox[1em]{#2}}}
 \NewDocumentCommand{\steppure}{O{} O{} m m }{#3 \stepsto[#1][#2] #4}
 \newcommand{\ectx}{E}
+\newcommand{\hole}{\lbrack \bullet \rbrack}
 \newcommand{\efill}[1]{\ectx\lbrack #1 \rbrack}
 \newcommand{\hd}{\mathsf{hd}}
 \newcommand{\tl}{\mathsf{tl}}
@@ -103,12 +104,21 @@
 \newcommand{\join}{\sqcup}
 \newcommand{\dom}{\mathsf{dom}}
 \newcommand{\nopostflowstoquery}[3]{#1 \vdash #2 \flowsto #3}
+\newcommand{\nopostactsforquery}[3]{#1 \vdash #2 \actsfor #3}
 \newcommand{\actsforquery}[4]{#1 \vdash #2 \actsfor #3 : #4}
 \newcommand{\notactsforquery}[4]{#1 \vdash #2 \not\actsfor #3 : #4}
 \newcommand{\strategy}{\mathsf{strat}}
 \newcommand{\voicekw}{\nabla}
 \newcommand{\voice}[1]{\voicekw(#1)}
 \newcommand{\extends}[2]{#1 \lbrack #2 \rbrack}
+
+\newcommand{\gconfig}[3]{\llparenthesis #1, #2, #3 \rrparenthesis}
+\NewDocumentCommand{\gstepsto}{ O{} O{} }{\xLongrightarrow[#1]{\mathmakebox[1em]{#2}}}
+
+\newcommand{\Assumps}{\mathcal{H}}
+\newcommand{\authproj}[1]{#1^{\pi}}
+\WithSuffix\newcommand\actsforquerymany*[5]{#1 \vdash^*_{#2} #3 \actsfor #4 : #5}
+\newcommand{\actsforquerysmany}[5]{#1 \vdash_{#2} #3 \actsfor #4 : #5}
 
 \definecolor{bluekeywords}{rgb}{0.13, 0.13, 1}
 \definecolor{greencomments}{rgb}{0, 0.5, 0}

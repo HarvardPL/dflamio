@@ -17,7 +17,6 @@ Finally, types are ranged over by the meta-variable $\type$ and include standard
          \new{\expr}{\expr} \mid \readref{\expr} \mid \writeref{\expr}{\expr} \mid \Label{\expr}{\expr} \mid \unlabel{\expr} \mid
          \tolabeled{\expr}{\expr} \mid \getlabel \\ &\mid \getclearance \mid \labelof{\expr} \mid \withscope{\expr} \mid \expr \actsfor \expr \mid \withstrategy{\expr}{\expr} \\ &\mid \adddelegate{\expr}{\expr}{\expr} \mid \getstrategy \mid \graybox{\wait{n}[\type]} \mid \graybox{\resetstrategy{\overline{p}}{\expr}} \\ &\mid \graybox{\resetTolabeled{p}{q}{\expr}} \mid \graybox{\resetscope{\scope}{\expr}}
          \end{aligned}$ \\
-         %$\overline{\expr} ::= \expr; \overline{\expr} \mid \termsym$ \\
          $\type ::= \bool \mid \unit \mid \func{\type}{\type} \mid \listtype{\type} \mid \pair{\type}{\type} \mid \labeltype \mid \labeled{\type} \mid \liotype{\type} \mid \reftype[n]{\type}$ \\
     \end{tabular}
     \caption{The \lang{} language}
@@ -59,19 +58,108 @@ We further split the local reduction rules into two categories: Pure reduction r
 
 The remaining local reductions all depend either on memory or on the identity of the principal which evaluates the expression. We denote these as ``monadic reductions''.
 
-Before introducing the monadic small-step local reduction, we introduce the remaining necessary concepts: First, a store $\store: \Addr \to \val$ is a mapping from addresses to values. A local configuration is a pair $\config{\store}{\expr}$ consisting of a store $\store$ and an expression $\expr$. \TODO{These are actually expression stacks. Find a better way to introduce this.} A global environment $\env: \Nameset \to \sigma$ is a mapping from names to local environments $\sigma$. A local environment contains the current label $\lblkw$, the set of delegations local to the principal $\scope$ and the current strategy of the principal. We use record notation for these and write $\sigma.\lblkw$, $\sigma.\scope$ and $\sigma.\strategy$ respectively.
+Before introducing the monadic small-step local reduction, we introduce the remaining necessary concepts: First, a store $\store: \Addr \to \val$ is a mapping from addresses to values. A local configuration is a pair $\config{\store}{\overline{\expr}}$ consisting of a store $\store$ and a stack of expressions $\overline{\expr}$. We use stacks of expressions to handle incoming RPCs which ``interrupts'' the current computation in order to evaluate the RPC. A global environment $\env: \Nameset \to \sigma$ is a mapping from names to local environments $\sigma$. A local environment contains the current label $\lblkw$, the set of delegations local to the principal $\scope$ and the current strategy of the principal. We use record notation for these and write $\sigma.\lblkw$, $\sigma.\scope$ and $\sigma.\strategy$ respectively.
 
 The small-step relation is written $\step{n; \env}{\config{\store}{\expr}}{\config{\store'}{\expr'}}{\sigma}$ and should be read as ``on machine $n$ with global environment $\env$ the configuration performs a single reduction and updates its local environment from $\env_n$ to $\sigma$''.
 
-Figure~\ref{fig:monadic-reductions} in the appendix shows the local reduction rules. Most of the rules verify some trust relationship between principals, written $\actsforquery{n; \env}{p}{q}{\level}$ and can be read as ``node $n$ proves that $p$ acts for $q$ and uses information labeled up to $\level$ in the process''. We will discuss this judgment later in this section.
+Figure~\ref{fig:monadic-reductions} in the appendix shows the local reduction rules. Most of the rules verify some trust relationship between principals, written $\actsforquery{n; \env}{p}{q}{\level}$ and can be read as ``node $n$ proves that $p$ acts for $q$ and uses information labeled up to $\level$ in the process''. We defer the discussing this judgment until Section~\ref{subsec:deriving-trust}.
 
-Rule \ruleref{E-Lift-Pure} lifts pure reductions to monadic reductions. Rules \ruleref{E-Get-Label} and \ruleref{E-Get-Clearance} returns current label or clearance of the principal upon which the expression is being evaluated. Rule \ruleref{E-App} applies a function to an argument and labels the resulting value with the given principal. Rules \ruleref{E-New}, \ruleref{E-Read}, \ruleref{E-Write}, \ruleref{E-Label} and \ruleref{E-Unlabel} are all equivalent to the ones presented in \cite{SRMMlio}, but now also takes into account the possible information-flows arising via deriving trust relationships. Rules \ruleref{E-ToLabeled-1} and \ruleref{E-ToLabeled-2} evaluates an expression $\expr$, but once $\expr$ is evaluated to a term $\val$, the current label is restored to its state before evaluation of $\expr$ began. This operation helps prevent label creep, and security guarantees can be reestablished by labeling $\val$. Note that the presentation of this operation is different from \cite{SRMMlio} in that we avoid interleaving small-step and big-step operations, which simplifies the proofs considerably.
+Rule \ruleref{E-Lift-Pure} lifts pure reductions to monadic reductions. Due to the structure of our evaluation contexts ($\ectx \hole ::= \ldots \mid \ectx \hole ; \overline{\expr}$) an expression can reduce at the head of the top of the expression stack only. This is why pure reductions are defined only for single expressions, while the monadic reductions work over lists of expressions. Rules \ruleref{E-Get-Label} and \ruleref{E-Get-Clearance} returns current label or clearance of the principal upon which the expression is being evaluated. Rule \ruleref{E-App} applies a function to an argument and labels the resulting value with the given principal. Rules \ruleref{E-New}, \ruleref{E-Read}, \ruleref{E-Write}, \ruleref{E-Label} and \ruleref{E-Unlabel} are all equivalent to the ones presented in \cite{SRMMlio}, but now also take into account the possible information-flows arising via deriving trust relationships \cite{Arden:2015:FA:2859845.2859998}. Rules \ruleref{E-ToLabeled-1} and \ruleref{E-ToLabeled-2} evaluates an expression $\expr$, but once $\expr$ is evaluated to a term $\val$, the current label is restored to its state before evaluation of $\expr$ began. This operation helps prevent label creep \cite{Cite label creep}, and security guarantees can be reestablished by labeling $\val$. Note that the presentation of this operation is different from \cite{SRMMlio} in that we avoid interleaving small-step and big-step operations, which simplifies the proofs considerably.
 
-Rules \ruleref{E-Acts-For-True} and \ruleref{E-Acts-For-False} queries the trust relationship between two given principals. Rules \ruleref{E-With-Scope} and \ruleref{E-Reset-Scope} introduces and eliminate a fluid scope respectively. Rules \ruleref{E-With-Strategy} introduces a new strategy and executes an expression in the lexical scope of the new strategy. Rule \ruleref{E-Reset-Strategy} eliminates the strategy once the expression reduces to a term. Finally, \ruleref{E-Assume} adds a new delegation. This rule uses the voice operator $\voicekw$ which was defined in Section~\ref{sec:background}.
+Rules \ruleref{E-Acts-For-True} and \ruleref{E-Acts-For-False} queries the trust relationship between two given principals. Rules \ruleref{E-With-Scope} and \ruleref{E-Reset-Scope} introduces and eliminate a fluid scope respectively. Rules \ruleref{E-With-Strategy} introduces a new strategy and executes an expression in the lexical scope of the new strategy. Rule \ruleref{E-Reset-Strategy} eliminates the strategy once the expression reduces to a term. Finally, \ruleref{E-Assume} adds a new delegation. This rule uses the voice operator $\voicekw$ defined in Section~\ref{sec:background}.
+
+\paragraph{Querying trust relationships}
+\lang{} allows, in the style of FLAM \cite{Arden:2015:FA:2859845.2859998} the trust relationship between principals to be changed dynamically throughout the execution of the program. This means that checking if some principal $p$ currently trusts some other principal $q$ is non-trivial and cannot be done statically. Thus it is important to ensure that no sensitive information is leaked to an attacker when checking such trust relationships. We show how the ideas in \cite{Arden:2015:FA:2859845.2859998} can be incorporated into LIO's floating label model. Figure~\ref{fig:act-for-judgment} shows how the judgment $\actsforquery{\Assumps; n; \env}{p}{q}{\level}$ derives trust relationships between principals. The judgment can be read as ``under assumptions $\Assumps$ node $n$''.
+
+We write $\bot^{\flowsto}$ for the bottom element of $(\mathcal{P}, \flowsto)$.
+
+\begin{figure}
+    \centering
+    \begin{mathpar}
+    \inferrule[Bot]{}{\actsforquery{\Assumps; n; \env}{p}{\bot}{\bot^{\flowsto}}}
+    \and
+    \inferrule[Top]{}{\actsforquery{\Assumps; n; \env}{\top}{p}{\bot^{\flowsto}}}
+    \and
+    \inferrule[Refl]{}{\actsforquery{\Assumps; n; \env}{p}{p}{\bot^{\flowsto}}}
+    \and
+    \inferrule[Hyp]{(p \actsfor q) \in \Assumps}{\actsforquery{\Assumps; n; \env}{p}{q}{\bot^{\flowsto}}}
+    \and
+    \inferrule[Proj]{\actsforquery{\Assumps; n; \env}{p}{q}{\level}}{\actsforquery{\Assumps; n; \env}{\authproj{p}}{\authproj{q}}{\level}}
+    \and
+    \inferrule[ProjR]{}{\actsforquery{\Assumps; n; \env}{p}{\authproj{p}}{\bot^{\flowsto}}}
+    \and
+    \inferrule[Own-1]{\actsforquery{\Assumps; n; \env}{o}{o'}{\level_1} \\\\ \actsforquery{\Assumps; n; \env}{p}{p'}{\level_2} \\\\ \level = \level_1 \join \level_2}{\actsforquery{\Assumps; n; \env}{\owner{o}{p}}{\owner{o'}{p'}}{\level}}
+    \and
+    \inferrule[Own-2]{\actsforquery{\Assumps; n; \env}{o}{o'}{\level_1} \\\\ \actsforquery{\Assumps; n; \env}{p}{\owner{o'}{p'}}{\level_2} \\\\ \level = \level_1 \join \level_2}{\actsforquery{\Assumps; n; \env}{\owner{o}{p}}{\owner{o'}{p'}}{\level}}
+    \and
+    \inferrule[Conj-L]{j \in \{ 1, 2 \} \\\\ \actsforquery{\Assumps; n; \env}{p_j}{p}{\level}}{\actsforquery{\Assumps; n; \env}{p_1 \conj p_2}{p}{\level}}
+    \and
+    \inferrule[Conj-R]{\actsforquery{\Assumps; n; \env}{p}{p_1}{\level_1} \\\\\ \actsforquery{\Assumps; n; \env}{p}{p_2}{\level_2} \\\\ \level = \level_1 \join \level_2}{\actsforquery{\Assumps; n; \env}{p}{p_1 \conj p_2}{\level}}
+    \and
+    \inferrule[Disj-L]{\actsforquery{\Assumps; n; \env}{p_1}{p}{\level_1} \\\\\ \actsforquery{\Assumps; n; \env}{p_2}{p}{\level_2} \\\\ \level = \level_1 \join \level_2}{\actsforquery{\Assumps; n; \env}{p_1 \disj p_2}{p}{\level}}
+    \and
+    \inferrule[Disj-R]{j \in \{ 1, 2 \} \\\\ \actsforquery{\Assumps; n; \env}{p}{p_j}{\level}}{\actsforquery{\Assumps; n; \env}{p}{p_1 \disj p_2}{\level}}
+    \and
+    \inferrule[Trans]{\actsforquery{\Assumps; n; \env}{p}{q}{\level_1} \\\\ \actsforquery{\Assumps; n; \env}{q}{r}{\level_2}}{\actsforquery{\Assumps; n; \env}{p}{r}{\level_1 \join \level_2}}
+    \and
+    \inferrule[Del]{\mathsf{ss} = \env_n . \strategy \\\\ \actsforquerysmany{\Assumps; n; \env}{\mathsf{ss}}{p}{q}{\level}}{\actsforquery{\Assumps; n; \env}{p}{q}{\level}}
+    \and
+    \inferrule[Fwd]{\flowstoquery{\Assumps; n; \env}{\env_n . \lblkw}{m}{\level_1} \\\\ \actsforquery{\Assumps; m; \extend{\env}{m}{\extend{\env_m}{\strategy}{\env_n.\strategy}}}{p}{q}{\level_2} }{\actsforquery{\Assumps; n; \env}{p}{q}{\level_1 \join \level_2}}
+    \end{mathpar}
+    \caption{Acts for judgment of \lang.}
+    \label{fig:act-for-judgment}
+\end{figure}
+
+\TODO{We should have an example demonstrating the usage of fluid scopes for delegations and strategies for controlling the raising of the current label because of trust checking.}
 
 \paragraph{Global semantics}
+A global configuration is a triple $\gconfig{n}{\env}{S}$ consisting of a node $n \in \Nameset$ denoting which machine is currently reducing an expression, a global environment $\env$, and a mapping $S$ from names to local configurations. Rule \ruleref{G-Step-Local} lifts a local reduction to a global reduction, and rules \ruleref{G-Step-App} and \ruleref{G-Step-Ret} handle remote procedure calls and returns respectively. When node $n$ sends an RPC to node $m$ we will call $n$ the source machine and $m$ the target machine. The global reduction rule is written as $\gconfig{n}{\env}{S} \gstepsto \gconfig{n'}{\env'}{S'}$ and can be read as ``Machine $n$ updates the environment $\env$ to $\env'$, updates the local environments $S$ to $S'$, and transfers control to machine $n'$''.
 
-\subsection{Deriving trust relationship in \lang}
+First, \ruleref{G-Step-App} will transfer control to the target machine, and the computation will be wrapped in a $\tolabeledkw$ construct at the top of the execution stack on the target machine to prevent the evaluation of the expression from raising the current label. Finally, the evaluation on source machine is suspended. Second, Rule \ruleref{G-Step-Ret} will return control to a suspended source machine when the top of the execution stack on the target machine has reduced to a term. The final rule, \ruleref{G-Step-Stop} halts the execution when the last machine has reduced its expression to a term. We use the notation $\bullet(S)$ to mean $S = \config{\store}{\bullet}$ for some store $\store$.
+
+Note that the computation is decentralized and multiple machines with different resources stored in their memories can cooperate and invoke each other. But the semantics is still deterministic in that only one expression will be reducible at any point. This excludes many possible attacks normally found in distributed information-flow systems \cite{Is this claim too bold?}, while still allowing multiple nodes to share computation.
+
+\begin{figure*}
+\centering
+\begin{mathpar}
+\inferrule[G-Step-Local]{\step{n; \env}{S_n}{S'}{\sigma}}{\gconfig{n}{\env}{S} \gstepsto \gconfig{n}{\extend{\env}{n}{\sigma}}{\extend{S}{n}{S'}}}
+\and
+\inferrule[G-Step-App]{\level_n = \env_n.\lblkw \and \level_m = \env_m.\lblkw \and S_m = \config{\store_m}{\overline{\expr_m}} \\\\ S_n = \config{\store_n}{\efill{\app{(\abs{m}{\lb{p}{\type}}{x}{\expr_n})}{\expr_n'}}} \and S_n' = \config{\store_n}{\efill{\wait{m}[\type]}} \\\\ S_m' = \config{\store_m}{(\resetTolabeled{\level_m}{p}{(\expr_n[\expr_n' / x])}) ; \overline{\expr_m}}}{\gconfig{n}{\env}{S} \gstepsto \gconfig{m}{\extend{\env}{m}{\extend{\env_m}{\lblkw}{\level_n \join \level_m}} }{\extends{S}{n \mapsto S_n', m \mapsto S_m'}}}
+\and
+\inferrule[G-Step-Ret]{S_n = \config{\store_n}{\efill{\wait{m}[\type]}} \and S_m = \config{\store_m}{\val ; \overline{\expr_m}} }{\gconfig{m}{\env}{S} \gstepsto \gconfig{n}{\env}{\extends{S}{n \mapsto \config{\store_n}{\efill{\val}}, m \mapsto \config{\store_m}{\overline{\expr_m}}}}}
+\and
+\inferrule[G-Step-Stop]{\forall n \in \Nameset \setminus \{m\}~.~ \termsym(S_n) \and S_m = \config{\store_m}{\val ; \termsym}}{\gconfig{m}{\env}{S} \gstepsto[][] \gconfig{m}{\env}{\extend{S}{m}{\config{\store_m}{\termsym}}}}
+\end{mathpar}
+\caption{Semantics of global steps}
+\label{fig:global-steps}
+\end{figure*}
+
+\subsection{Deriving trust relationship in \lang}\label{subsec:deriving-trust}
+Figure~\ref{fig:act-for-judgment} shows how \lang{} derives trust relationships between principals. Intuitively, if $\actsforquery{\Assumps; n; \env}{p}{q}{\level}$ means that node $n$ has to raise its current floating label to be at least $\level$ in order to use the information that $q$ trusts $p$. We use this intuition to explain the rules.
+
+Many rules translate directly from \cite{Arden:2015:FA:2859845.2859998}, but differ in how delegations are handled and how remote nodes are used to derive trust relationships. We write $\bot^{\flowsto}$ for the bottom element of the lattice $(\mathcal{P}, \flowsto)$, which correspond to the least confidential and most trusted principal in the lattice. Rule \ruleref{Bot} says that the element $\bot$ trusts any principal, and that deriving this trust requires information up to level $\bot^{\flowsto}$. Dually, \ruleref{Top} states that any principal trusts $\top$, and \ruleref{Refl} states that any element trusts itself. Rule \ruleref{Hyp} states that any hypothesis can be used to derive trust without raising the current label any further. We will see that this is secure since the only way for a trust relationship $p \actsfor q$ to become a hypothesis in $\Assumps$ is to check that this relation can be derived from the rules already. \TODO{Revisit this explanation. Possible make the relationship between this and checked endorsements explicit.} Rule \ruleref{Proj} expresses applying projections preserve trust between principals and \ruleref{ProjR} states that a principal is at least as trusted as the projected principal. Rules \ruleref{Own-1} and \ruleref{Own-2} derives trust between ownership projections. First, \ruleref{Own-1} shows that trust between principals imply trust between owned principals, and \ruleref{Own-2} states that, if an ownership projection $\owner{o'}{p'}$ trusts a principal $p$ then another ownership principal $\owner{o}{p}$ also trusts $\owner{o'}{p'}$, but only if the the owner $o'$ trusts $o$. Rules \ruleref{Conj-L}, \ruleref{Conj-R}, \ruleref{Disj-L} and \ruleref{Disj-R} correspond to the usual lattice rules for joins and meets, and \ruleref{Trans} ensures that the trust relation is transitive. Rule \ruleref{Fwd} expresses how a node $n$ can query another node $m$ for a trust relationship, but only if $n$ allows the information that caused $n$ to contact $m$ to be learned by $m$. Furthermore, the searching strategy used by $n$ should also be used by $m$.
+
+Finally, rule \ruleref{Del} expresses how delegations can be used to derive trust. The judgment uses the search strategy to control how the information-flow lattice should be searched. This is shown in Figure~\ref{fig:act-for-judgment-del}, where the first element in $s$ in the strategy that successfully derives the trust relationship terminates the proof search. Also note that this is deterministic in the sense that the principals in the strategy is searched from beginning to end until one succeeds. The rules \ruleref{Del-1} and \ruleref{Del-2} uses a an interpretation function $\llbracket \cdot \rrbracket(\Assumps, n, \env)$ to compute the set of usable delegations for a node $n$ given assumptions $\Assumps$ and global environment $\env$. This function is defined as
+\begin{align*}
+&\llbracket (\lb{\level}{p \actsfor q}) :: \scope \rrbracket(\Assumps, n, \env) = \\ &\qquad  \begin{cases}
+(p \actsfor q) :: \scope' & \text{ if } \flowstoquery{\Assumps, p \actsfor q; n; \env'}{\level}{s}{\level'} \\ &\qquad \wedge\ \nopostflowstoquery{\Assumps, p \actsfor q}{\level'}{s} \\
+\scope' & \text{ otherwise}
+\end{cases}
+\\
+&\llbracket \nil \rrbracket(\Assumps, n, \env) = \nil
+\end{align*}
+where $\scope' = \llbracket \scope \rrbracket((\Assumps, p \actsfor q), n, \env \setminus_n (\lb{\level}{p \actsfor q}))$ and $\env' = \env \setminus_n (\lb{\level}{p \actsfor q})$\footnote{We use the notation $\env \setminus_n (\lb{\level}{p \actsfor q})$ to mean the environment $\extend{\env}{n}{\extend{\env_n}{\scope}{\env_n.\scope \setminus (\lb{\level}{p \actsfor q})}}$.}. Intuitively, this function unlabels the delegations that the node $n$ is allowed to observe. That is, if the label on the delegation flows to the current strategy principal. Note the recursive problem here: In order to check if $n$ is allowed to observe the delegation $\lb{\level}{p \actsfor q}$ it should be checked if $\level \flowsto s : \level'$ for some $\level'$, which then requires information up to level $\level'$ in the lattice $(\mathcal{P}, \flowsto)$, so we need to check that $\level' \flowsto s : \level''$ for some $\level''$, etc. At some point this search would have to terminate with some label that is known to flow to $s$ statically. We increase the permissiveness of this while ensuring a strong sense of security by \emph{allowing $n$ the use of the delegation $p \actsfor q$ when checking if $p \actsfor q$ is allowed to be observed by $n$}. This is a form of checked endorsement \cite{Cite Aslan's and Myers' ATTACKER CONTROL AND IMPACT FOR CONFIDENTIALITY AND INTEGRITY paper} which was also noted to be a useful extension to the Jif programming language \cite{Cite Stephen's Secure web applications via automatic partitioning}. The judgment $\nopostactsforquery{\Assumps}{p}{q}$ is a judgment checking if $q$ trusts $p$ under the assumptions $\Assumps$. \TODO{Show an example where this is useful. Perhaps use the recursive issue we had in the implementation.}
+
+\begin{figure}
+    \centering
+    \begin{mathpar}
+    \inferrule[Del-1]{\scope = \env_n.\scope \\\\ (p \actsfor q) \in \llbracket \scope \rrbracket_s(\Assumps, n, \env)}{\actsforquerysmany{\Assumps; n; \env}{\mathsf{s}::\mathsf{ss}}{p}{q}{s}}
+    \and
+    \inferrule[Del-2]{\scope = \env_n.\scope \\\\ (p \actsfor q) \notin \llbracket \scope \rrbracket_s(\Assumps, n, \env) \\\\ \actsforquerysmany{\Assumps; n; \env}{\mathsf{ss}}{p}{q}{\level}}{\actsforquerysmany{\Assumps; n; \env}{\cons{\mathsf{s}}{\mathsf{ss}}}{p}{q}{\level \join s}}
+    \end{mathpar}
+    \caption{Auxiliary judgment for using delegations when proving an acts for query in \lang.}
+    \label{fig:act-for-judgment-del}
+\end{figure}
 
 Talk about:
 \begin{enumerate}

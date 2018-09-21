@@ -1,7 +1,7 @@
 \begin{figure*}
     \centering
     \begin{mathpar}
-    \inferrule[E-Lift-Pure]{\steppure{\expr}{\expr'}}{\step{n; \env}{\config{\store}{\expr}}{\config{\store}{\expr'}}{\env_n}}
+    \inferrule[E-Lift-Pure]{\steppure{\expr}{\expr'}}{\step{n; \env}{\config{\store}{\efill{\expr}}}{\config{\store}{\efill{\expr'}}}{\env_n}}
     \and
     \inferrule[E-Ctx]{\step{n; \env}{\config{\store}{\expr}}{\config{\store'}{\expr'}}{\sigma}}{\step{n; \env}{\config{\store}{\efill{\expr}}}{\config{\store'}{\efill{\expr'}}}{\sigma}}
     \and
