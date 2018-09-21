@@ -3,13 +3,13 @@
     \begin{mathpar}
     \inferrule[E-Lift-Pure]{\steppure{\expr}{\expr'}}{\step{n; \env}{\config{\store}{\expr}}{\config{\store}{\expr'}}{\env_n}}
     \and
-    \inferrule[E-Ctx]{\step{n; \env}{\config{\store}{\expr}}{\config{\store'}{\expr'}{\sigma}}}{\step{n; \env}{\config{\store}{\efill{\expr}}}{\config{\store'}{\efill{\expr'}}}{\sigma}}
+    \inferrule[E-Ctx]{\step{n; \env}{\config{\store}{\expr}}{\config{\store'}{\expr'}}{\sigma}}{\step{n; \env}{\config{\store}{\efill{\expr}}}{\config{\store'}{\efill{\expr'}}}{\sigma}}
     \and
     \inferrule[E-Get-Label]{\level = \env_n.\lblkw}{\step{n; \env}{\config{\store}{\efill{\getlabel}}}{\config{\store}{\efill{\return{\level}}}}{\env_n}}
     \and
     \inferrule[E-Get-Clearance]{}{\step{n; \env}{\config{\store}{\efill{\getclearance}}}{ \config{\store}{\efill{\return{n}}}}{\env_n}}
     \and
-    \inferrule[E-App]{\flowstoquery{n; \env}{p}{n}{\level} \\\\ \expr' = \bind{\expr_1[\expr_2 / x]}{\abs{n}{\type}{x}{\lb{p}{x}}} \\\\ \sigma = \extend{\env_n}{\lblkw}{\env_n.\lblkw \join \level}}{\step{n; \env}{\config{\store}{\efill{\app{(\abs{n}{\lb{p}{\type}}{x}{\expr_1})}{\expr_2}}}}{\config{\store}{\efill{\expr'}}}{\sigma}}
+    \inferrule[E-App]{\flowstoquery{n; \env}{\env_n.\lblkw \flowsto p}{n}{\level} \\\\ \expr' = \bind{\expr_1[\expr_2 / x]}{\abs{n}{\type}{x}{\lb{p}{x}}} \\\\ \sigma = \extend{\env_n}{\lblkw}{\env_n.\lblkw \join \level}}{\step{n; \env}{\config{\store}{\efill{\app{(\abs{n}{\lb{p}{\type}}{x}{\expr_1})}{\expr_2}}}}{\config{\store}{\efill{\expr'}}}{\sigma}}
     \and
     \inferrule[E-New]{\addr \notin \dom(\store) \and \flowstoquery{n; \env}{\env_n.\lblkw}{p \flowsto n}{\level} \\\\ \nopostflowstoquery{n; \env}{\env_n.\lblkw \join \level}{n} \and \store' = \extend{\store}{\addr}{\lb{p}{\expr}} \\\\ \sigma = \extend{\env_n}{\lblkw}{\env_n.\lblkw \join \level}}{\step{n; \env}{\config{\store}{\efill{\new{p}{\expr}}}}{ \config{\store'}{\efill{\return{\addr}}}}{\sigma}}
     \and
@@ -37,9 +37,9 @@
     \and
     \inferrule[E-Reset-Strategy]{\sigma = \extend{\env_n}{\strategy}{\vec{p}}}{\step{n; \env}{\config{\store}{\efill{\resetstrategy{\vec{p}}{\val}}}}{ \config{\store}{\efill{\val}}}{\sigma}}
     \and
-    \inferrule[E-Add-Delegate]{
+    \inferrule[E-Assume]{
     \flowstoquery{n; \env}{\env_n.\lblkw}{r \flowsto n}{\level_1} \and \actsforquery{n; \env}{\env_n.\lblkw}{\voice{q}}{\level_2} \\\\ \nopostflowstoquery{n; \env}{\env_n.\lblkw \join \level_1 \join \level_2}{n} \\\\ \sigma = \extends{\env_n}{\scope \mapsto \cons{\lb{r}{(p, q)}}{\env . \scope}), \lblkw \mapsto \env_n.\lblkw \join \level_1 \join \level_2}}{\step{n; \env}{\config{\store}{\efill{\adddelegate{p}{q}{r}}}}{ \config{\store}{\efill{\return{()}}}}{\sigma}}
     \end{mathpar}
     \caption{Monadic reductions for \lang{}}
-    \label{fig:semantics-monadic}
+    \label{fig:monadic-reductions}
 \end{figure*}
