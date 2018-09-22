@@ -9,6 +9,7 @@
 \newcommand{\integ}[1]{#1^{\leftarrow}}
 \newcommand{\owner}[2]{#1\!:\!#2}
 \newcommand{\addr}{a}
+\newcommand{\Attacker}{\mathcal{A}}
 \newcommand{\Addr}{A}
 \newcommand{\val}{v}
 \newcommand{\expr}{e}
@@ -115,7 +116,8 @@
 \newcommand{\actsforquerycount}[5]{#1 \vdash^{\!\! #5} #2 \actsfor #3 : #4}
 
 \newcommand{\gconfig}[3]{\llparenthesis #1, #2, #3 \rrparenthesis}
-\NewDocumentCommand{\gstepsto}{ O{} O{} }{\xLongrightarrow[#1]{\mathmakebox[1em]{#2}}}
+\NewDocumentCommand{\gstepsto}{ O{} O{} }{\xRightarrow[#1]{\mathmakebox[1em]{#2}}}
+\NewDocumentCommand{\gstepstos}{ O{} O{} O{*} }{\xRightarrow[#1]{\mathmakebox[1em]{#2}}{}\!\!^{#3}}
 
 \newcommand{\Assumps}{\mathcal{H}}
 \newcommand{\authproj}[1]{#1^{\pi}}
@@ -127,6 +129,13 @@
 \newcommand{\wf}[2]{#1 \vdash #2}
 
 \newcommand{\event}{\mathit{ev}}
+\newcommand{\good}[2]{#1 \vdash \mathsf{good}(#2)}
+\newcommand{\globalstore}{\Phi}
+\newcommand{\altglobalstore}{\Psi}
+\newcommand{\filtertrace}{\leadsto}
+\NewDocumentCommand{\traceloweq}{m m m O{} }{#1 \simeq_{#2}^{#4} #3}
+\NewDocumentCommand{\loweq}{ m m O{} m m }{#1 \vdash #4 \simeq_{#2}^{#3} #5}
+\newcommand{\emptyenv}{\varnothing}
 
 \definecolor{bluekeywords}{rgb}{0.13, 0.13, 1}
 \definecolor{greencomments}{rgb}{0, 0.5, 0}
