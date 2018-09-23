@@ -53,9 +53,9 @@ Another scenario is modeled in Figure~\ref{fig:sec-bank-alice-banks-for-bob}, wh
 \subsection{A secure social jukebox service}
 We now consider a secure version of a social jukebox service. A group of principals $\Nameset$ is gathered at a party and want to vote on which songs should be played at the party. Furthermore, the principals do not want to have their votes leaked to the other principals. We assume a distinguished principal $\mathsf{J} \in \Nameset$ (for jukebox) representing a machine supporting the following primitive functions.
 \begin{align*}
-\mathtt{vote}&: \labeled{\String} \rightarrow \liotype{\unit}\\
-\mathtt{candidates}&: \unit \rightarrow \liotype{\listtype{\pair{\String}{\listtype{\labeled{\labeltype}}}}}\\
-\mathtt{play}&: \String \rightarrow \liotype{\unit}
+\mathtt{vote}&: \labeled{\String} \to \liotype{\unit}\\
+\mathtt{candidates}&: \unit \to \liotype{\listtype{\pair{\String}{\listtype{\labeled{\labeltype}}}}}\\
+\mathtt{play}&: \String \to \liotype{\unit}
 \end{align*}
 The function $\mathtt{vote}$ casts a vote for the song represented by the labeled string argument. The integrity of the labeled string defines the voter of this song.
 
@@ -77,7 +77,7 @@ voted = (*@$\lambda^{\text{J}}$@*) s p .
 \label{fig:prevent-double-voting}
 \end{figure}
 
-Figure~\ref{fig:prevent-double-voting} shows how the jukebox can use $\mathtt{candidates}$ to implement a function $\mathtt{voted}: \String \rightarrow \labeltype \rightarrow \liotype{\bool}$ such that $\mathsf{voted}\; s\; p$ evaluates to $\true$ if and only if $p$ has voted for song $s$. The function unlabels the list of principals and checks if $p$ is a member of the list. Since each principal is labeled with some principal $q$ such that $\conf{q} \actsfor \conf{J}$ only principals for which $J$ has delegated confidentiality can unlabel the list elements.
+Figure~\ref{fig:prevent-double-voting} shows how the jukebox can use $\mathtt{candidates}$ to implement a function $\mathtt{voted}: \String \to \labeltype \to \liotype{\bool}$ such that $\mathsf{voted}\; s\; p$ evaluates to $\true$ if and only if $p$ has voted for song $s$. The function unlabels the list of principals and checks if $p$ is a member of the list. Since each principal is labeled with some principal $q$ such that $\conf{q} \actsfor \conf{J}$ only principals for which $J$ has delegated confidentiality can unlabel the list elements.
 
 \begin{figure}
 \centering

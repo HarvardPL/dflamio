@@ -83,6 +83,7 @@
 \newcommand{\refkw}{\mathsf{Ref}}
 \NewDocumentCommand{\reftype}{ O{} m}{\refkw_{#1}\,#2}
 \newcommand{\store}{\phi}
+\newcommand{\altstore}{\psi}
 \newcommand{\ruleref}[1]{\textsc{#1}}
 \definecolor{verylightgray}{rgb}{0.9,0.9,0.9}
 \newcommand{\graybox}[1]{\fcolorbox{white}{verylightgray}{\ensuremath{#1}}}
@@ -114,6 +115,7 @@
 \newcommand{\voice}[1]{\voicekw(#1)}
 \newcommand{\extends}[2]{#1 \lbrack #2 \rbrack}
 \newcommand{\actsforquerycount}[5]{#1 \vdash^{\!\! #5} #2 \actsfor #3 : #4}
+\newcommand{\nopostnotflowstoquery}[3]{#1 \vdash #2 \not\flowsto #3}
 
 \newcommand{\gconfig}[3]{\llparenthesis #1, #2, #3 \rrparenthesis}
 \NewDocumentCommand{\gstepsto}{ O{} O{} }{\xRightarrow[#1]{\mathmakebox[1em]{#2}}}
@@ -135,7 +137,10 @@
 \newcommand{\filtertrace}{\leadsto}
 \NewDocumentCommand{\traceloweq}{m m m O{} }{#1 \simeq_{#2}^{#4} #3}
 \NewDocumentCommand{\loweq}{ m m O{} m m }{#1 \vdash #4 \simeq_{#2}^{#3} #5}
+\NewDocumentCommand{\loweql}{ m m O{} m m }{#1 \vdash_{L} #4 \simeq_{#2}^{#3} #5}
 \newcommand{\emptyenv}{\varnothing}
+\newcommand{\bijection}{\theta}
+\newcommand{\partialto}{\rightharpoonup}
 
 \definecolor{bluekeywords}{rgb}{0.13, 0.13, 1}
 \definecolor{greencomments}{rgb}{0, 0.5, 0}
