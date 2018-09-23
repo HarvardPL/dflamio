@@ -96,7 +96,7 @@ Note that the computation is decentralized and multiple machines with different 
 \begin{mathpar}
 \inferrule[G-Step-Local]{\step{n; \env}{S_n}{S'}{\sigma}}{\gconfig{n}{\env}{S} \gstepsto \gconfig{n}{\extend{\env}{n}{\sigma}}{\extend{S}{n}{S'}}}
 \and
-\inferrule[G-Step-App]{\level_n = \env_n.\lblkw \and \level_m = \env_m.\lblkw \and S_m = \config{\store_m}{\overline{\expr_m}} \\\\ S_n = \config{\store_n}{\efill{\app{(\abs{m}{\lb{p}{\type}}{x}{\expr_n})}{\expr_n'}}} \and S_n' = \config{\store_n}{\efill{\wait{m}[\type]}} \\\\ S_m' = \config{\store_m}{(\resetTolabeled{\level_m}{p}{(\expr_n[\expr_n' / x])}) ; \overline{\expr_m}}}{\gconfig{n}{\env}{S} \gstepsto \gconfig{m}{\extend{\env}{m}{\extend{\env_m}{\lblkw}{\level_n \join \level_m}} }{\extends{S}{n \mapsto S_n', m \mapsto S_m'}}}
+\inferrule[G-Step-App]{\level_n = \env_n.\lblkw \and \level_m = \env_m.\lblkw \and S_m = \config{\store_m}{\overline{\expr_m}} \and \nopostflowstoquery{m; \env}{\level_n \join \level_m}{m} \\\\ S_n = \config{\store_n}{\efill{\app{(\abs{m}{\lb{p}{\type}}{x}{\expr_n})}{\expr_n'}}} \and S_n' = \config{\store_n}{\efill{\wait{m}[\type]}} \\\\ S_m' = \config{\store_m}{(\resetTolabeled{\level_m}{p}{(\expr_n[\expr_n' / x])}) ; \overline{\expr_m}}}{\gconfig{n}{\env}{S} \gstepsto \gconfig{m}{\extend{\env}{m}{\extend{\env_m}{\lblkw}{\level_n \join \level_m}} }{\extends{S}{n \mapsto S_n', m \mapsto S_m'}}}
 \and
 \inferrule[G-Step-Ret]{S_n = \config{\store_n}{\efill{\wait{m}[\type]}} \and S_m = \config{\store_m}{\val ; \overline{\expr_m}} }{\gconfig{m}{\env}{S} \gstepsto \gconfig{n}{\env}{\extends{S}{n \mapsto \config{\store_n}{\efill{\val}}, m \mapsto \config{\store_m}{\overline{\expr_m}}}}}
 \and
