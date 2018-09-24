@@ -111,8 +111,9 @@ where $S(m) = \config{\altglobalstore(n)}{\llbracket \expr \rrbracket_n(m)}$ and
 \termsym & \text{ otherwise }
 \end{cases}
 \end{equation*}
+ensures that expression $\expr$ is initially evaluated on node $n$, and the remaining nodes start off with an empty list of expressions.
 
-and the policy \cite{6234468} is defined as all possible terminating memories
+The policy \cite{6234468} is defined as all possible terminating memories
 \begin{equation*}
 k^n_{\Attacker}(\globalstore, \expr) = \left\{ \,\altglobalstore \, \middle\vert \, \globalstore \simeq_{\Attacker} \altglobalstore \wedge \, \gconfig{n}{\emptyenv}{S} \gstepstos \, \right\}
 \end{equation*}
@@ -125,4 +126,4 @@ If $\gconfig{n}{\varnothing}{S} \gstepstos[][A \filtertrace t]$ for $S(m) = \con
 
 Theorem~\ref{thm:ni} is proved using a generalized version of the statement that quantifies over any two low-equivalent global configurations and proving that they emit low-equivalent observable traces. An important invariant obtained by quantifying only over good traces is that whenever $\actsforquery{n; \env_1}{p}{q}{\level}$ and $\nopostflowstoquery{n; \env_1}{\level}{\Attacker}$ it holds that $\actsforquery{n; \env_2}{p}{q}{\level}$ and $\nopostflowstoquery{n; \env_2}{\level}{\Attacker}$. The technical report \cite{techreport} contains a complete proof of Theorem~\ref{thm:ni}.
 
-\TODO{Also talk about how raising the current label is a side-channel that we close in our system.}
+It is worth noting that, as seen in \ruleref{E-Get-Label} Figure~\ref{fig:monadic-reductions}, the current label is public information. Thus, one might wonder if it is possible to raise the current label depending on information that should not flow to an attacker - perhaps by some clever trust checking that unlabels different delegations in two different, but low-equivalent, runs. But as Theorem~\ref{thm:ni} shows, an attacker cannot learn any information by inspecting the current label.
