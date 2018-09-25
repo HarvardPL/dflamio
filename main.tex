@@ -1,7 +1,7 @@
 \documentclass[conference]{IEEEtran}
 \IEEEoverridecommandlockouts
 % The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
-\usepackage{cite}
+%\usepackage{cite}
 \usepackage[parfill]{parskip}
 \usepackage{hyperref}
 \usepackage{extarrows}
@@ -22,17 +22,35 @@
 \usepackage{empheq}
 \usepackage{stmaryrd}
 \usepackage{suffix}
+\usepackage[style=ieee, doi=false,isbn=false,url=false]{biblatex}
+\setlength\bibitemsep{0.6\baselineskip}
+\DeclareFieldFormat[book,inbook,article,incollection,inproceedings]{series}{#1}
+\DeclareFieldFormat[book,inbook,article,incollection,inproceedings]{title}{#1}
 \input{macros.tex}
+
+%\bibliographystyle{abbrv}
+\AtBeginBibliography{\small}
+\addbibresource{litterature.bib}
+
 \begin{document}
 
-\title{DFLAMIO: Distributed FLAM in LIO}
+\title{Coarse-Grained Information-Flow for Distributed Authorization}
 
-\author{\IEEEauthorblockN{Name}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address}
+%\def\review{1}
+
+\ifx\review\undefined
+\author{\IEEEauthorblockN{Mathias V. Pedersen}
+\IEEEauthorblockA{\textit{Department of Computer Science} \\
+\textit{Aarhus University}\\
+\href{mailto:mvp@cs.au.dk}{mvp@cs.au.dk}}
+\and
+\IEEEauthorblockN{Stephen Chong}
+\IEEEauthorblockA{\textit{Harvard School of Engineering and Applied Sciences} \\
+\textit{Cambridge, Massachusetts}\\
+\href{mailto:chong@seas.harvard.edu}{chong@seas.harvard.edu}}
 }
+\else
+\fi
 
 \maketitle
 
@@ -73,8 +91,7 @@ email address}
 
 \input{Sections/acknowledgements.tex}\label{sec:acknowledgements}
 
-\bibliographystyle{abbrv}
-\bibliography{litterature}
+\printbibliography
 
 \vspace{12pt}
 
