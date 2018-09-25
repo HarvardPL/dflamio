@@ -1,4 +1,13 @@
-We have implemented \lang{} as a library in Haskell. The code is approximately 2200 lines of code and uses the efficient query resolution algorithm for authorization queries described in \cite{Arden:2015:FA:2859845.2859998}, along with additional layers of caching to avoid repeated network communication. To simplify the implementation we differ from the calculus in that an RPC invocation does not send the function across the network. Instead, the receiver of the RPC has a table mapping identifiers to functions, and the caller sends this identifier along with the list of arguments. This does not lead to loss of expressivity, though: As shown in \cite{Cooper:2009:RC:1599410.1599439} one can translate a program written in the calculus from Section~\ref{sec:calculus} to a program written in Haskell using the \lang{} implementation by performing defunctionalization.
+We have implemented \lang{} as a library in Haskell. The code is approximately 2200 lines of code and uses the efficient query resolution algorithm for authorization queries described in \cite{Arden:2015:FA:2859845.2859998}, along with additional layers of caching to avoid repeated network communication. To simplify the implementation we differ from the calculus in the following ways:
+\begin{enumerate}
+    \item \label{enum:no-func-across-network} An RPC invocation does not send the function that should be called across the network. Instead, the receiver of the RPC has a table mapping identifiers to functions, and the caller sends this identifier along with the list of arguments.
+    \item \label{enum:cache-network-queries} Since query results obtained via network communication is cached on a per-query basis, no two identical queries is sent to the same node.
+\end{enumerate}
+
+Point \ref{enum:no-func-across-network} does not lead to loss of expressivity: As shown in \cite{Cooper:2009:RC:1599410.1599439} one can translate a program written in the calculus from Section~\ref{sec:calculus} to a program written in Haskell using the \lang{} implementation by performing defunctionalization.
+
+Point \ref{enum:cache-network-queries} reduces network communication a lot, but means that the system is unsound if the trust relationship between principals change during query resolution. In practice this is not an issue, as orthogonal work on query isolation \cite{Liu:2009:FPS:1629575.1629606} can provide transactional behavior for distributed systems like \lang.
+
 
 Using this implementation we have constructed three use cases for \lang. The first use case is a distributed bank, in which users can perform RPCs to handle transactions across accounts between different users. The second use case is a social jukebox service \cite{Sprague:2008:MSU:1385569.1385652} where people can schedule music during social gatherings. The third use case is a secure database containing confidential information about government agencies.
 
