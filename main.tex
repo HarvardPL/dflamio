@@ -28,15 +28,34 @@
 \DeclareFieldFormat[book,inbook,article,incollection,inproceedings]{title}{#1}
 \input{macros.tex}
 
+%\def\review{1}
+
+\ifx\review\undefined
+\begin{filecontents}{techreport.bib}
+@techreport{techreport,
+     title = {{Coarse-Grained Information-Flow for Distributed Authorization}},
+     author = {M. Pedersen and S. Chong},
+     year = {2018}
+}
+\end{filecontents}
+\else
+\begin{filecontents}{techreport.bib}
+@techreport{techreport,
+     title = {{Coarse-Grained Information-Flow for Distributed Authorization}},
+     author = {{\relax Removed for anonymous submission}},
+     year = {2018}
+}
+\end{filecontents}
+\fi
+
 %\bibliographystyle{abbrv}
 \AtBeginBibliography{\small}
 \addbibresource{litterature.bib}
+\addbibresource{techreport.bib}
 
 \begin{document}
 
 \title{Coarse-Grained Information-Flow for Distributed Authorization}
-
-%\def\review{1}
 
 \ifx\review\undefined
 \author{\IEEEauthorblockN{Mathias V. Pedersen}
