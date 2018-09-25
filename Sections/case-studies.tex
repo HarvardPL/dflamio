@@ -18,7 +18,7 @@ In order for $\mathsf{Alice}$ to authenticate with the server she needs to provi
 
 Since the transfer will reveal to $\mathsf{Bob}$ the fact that $\mathsf{Alice}$ has at least 100 dollars on her account, she needs to add a delegation stating that $\mathsf{Bob}$ is allowed to learn this information. This delegation is controlled by $\mathsf{Alice}$ and $\mathsf{Alice}$ must allow this trust to be known to the server who is the principal that will decide whether to allow the transfer. This decision is reflected by the label placed on the delegation.
 
-Another scenario is modeled in Figure~\ref{fig:sec-bank-alice-banks-for-bob}, where we assume that $\mathsf{Alice}$ is already logged in and $\mathsf{Bob}$ gives $\mathsf{Alice}$ authority to act on his behalf. Specifically, he allows $\mathsf{Alice}$ to perform transfers from his account. In order to do this $\mathsf{Bob}$'s create a delegation labeled with his own integrity stating that he trusts $\mathsf{Alice}$. The situation is then the same as in the previous, where Charlie must be allowed to learn the lower bound of $50$ on $\mathsf{Bob}$'s account. But since this is a transfer performed by $\mathsf{Alice}$, it needs to have $\mathsf{Alice}$'s integrity. Thus $\mathsf{Alice}$ delegates $\mathsf{Bob}$'s confidentiality to $\mathtt{Charlie}$'s confidentiality. Finally, in order for the server to trust $\mathsf{Alice}$'s delegations the server needs to trust the integrity of $\mathsf{Alice}$. This is reflected in the three delegations shown in Figure~\ref{fig:sec-bank-alice-banks-for-bob}.
+Another scenario is modeled in Figure~\ref{fig:sec-bank-alice-banks-for-bob}, where we assume that $\mathsf{Alice}$ is already logged in and $\mathsf{Bob}$ gives $\mathsf{Alice}$ authority to act on his behalf. Specifically, he allows $\mathsf{Alice}$ to perform transfers from his account. In order to do this $\mathsf{Bob}$'s create a delegation labeled with his own integrity stating that he trusts $\mathsf{Alice}$. The situation is then the same as in the previous use case, where Charlie must be allowed to learn the lower bound of $50$ on $\mathsf{Bob}$'s account. But since this is a transfer performed by $\mathsf{Alice}$, it needs to have $\mathsf{Alice}$'s integrity. Thus $\mathsf{Alice}$ delegates $\mathsf{Bob}$'s confidentiality to $\mathtt{Charlie}$'s confidentiality. Finally, in order for the server to trust $\mathsf{Alice}$'s delegations the server needs to trust the integrity of $\mathsf{Alice}$. This is reflected in the three delegations shown in Figure~\ref{fig:sec-bank-alice-banks-for-bob}.
 
 \begin{figure}
     \centering
@@ -67,14 +67,14 @@ We now consider a secure version of a social jukebox service. A group of princip
 \end{align*}
 The function $\mathtt{vote}$ casts a vote for the song represented by the labeled string argument. The integrity of the labeled string defines the voter of this song.
 
-As we don't want to have a party principal vote multiple times for the same song, we need to remember which principals have voted for each song. The function $\mathtt{candidates}$ returns a list of pairs $(s_1, \mathit{vs}_1), \dots, (s_n, {\mathit{vs}}_n)$ consisting of a song title $s_i$ and the list of principals who have voted for this song $\mathit{vs}_i$. As an additional feature to the party guests, we allow this function to be invoked by any principal so that the party principals can see which songs is currently being voted for. But, as we do not want to reveal the identity of each voter to the guests, each element in the list $\mathit{vs}_i$ is is labeled with the confidentiality of $\mathsf{J}$ such that none of the untrusted party participants\footnote{Principals $p$ such that $\conf{\mathsf{J}} \not\actsfor p$.} will learn which participant votes for which song. So any principal can learn which songs for which there exists some principal that has voted for the song, but only the principals trusted with the confidentiality of $J$ can learn the identity of the voters.
+As we don't want to have a party principal vote multiple times for the same song, we need to remember which principals have voted for each song. The function $\mathtt{candidates}$ returns a list of pairs $(s_1, \mathit{vs}_1), \dots, (s_n, {\mathit{vs}}_n)$ consisting of a song title $s_i$ and the list of principals who have voted for this song $\mathit{vs}_i$. As an additional feature to the party guests, we allow this function to be invoked by any principal so that the party principals can see which songs is currently being voted for. But, as we do not want to reveal the identity of each voter to the guests, each element in the list $\mathit{vs}_i$ is is labeled with the confidentiality of $J$ such that none of the untrusted party participants\footnote{Principals $p$ such that $\conf{J} \not\actsfor p$.} will learn which participant votes for which song. So any principal can learn which songs for which there exists some principal that has voted for the song, but only the principals trusted with the confidentiality of $J$ can learn the identity of the voters.
 
 Figure~\ref{fig:jukebox-alice-votes-for-taylor-swift} shows an example of $\mathsf{Alice}$ voting for ``Shake it Off'' by Taylor Swift. First, the jukebox $J$ allows $\mathsf{Alice}$ to label data with the confidentiality of the jukebox such that she can send the song vote. This delegation must have a confidentiality label such that $\mathsf{Alice}$ is allowed to use this delegation. By making the presence of the delegation public this is guaranteed to always be the case. Now $\mathsf{Alice}$ is allowed to label the song such that only the server will be able to access the content, and the integrity of the labeled data will reveal that this vote was cast by $\mathsf{Alice}$.
 
 \begin{figure}
 \centering
 \begin{lstlisting}
-voted = (*@$\lambda^{\mathsf{J}}$@*) s p .
+voted = (*@$\lambda^{J}$@*) s p .
   c <- candidates
   anyM ((*@$\lambda^{\mathsf{Alice}}$@*) (s, vs). if s = s' then
                         vs' <- mapM unlabel vs
@@ -91,7 +91,7 @@ Figure~\ref{fig:prevent-double-voting} shows how the jukebox can use $\mathtt{ca
 \centering
 \begin{lstlisting}
 ((*@$\lambda^{\mathsf{Alice}}$@*) _ .
-  ((*@$\lambda^{\mathsf{J}}$@*) _ . assume (*@$\conf{\mathsf{Alice}}$@*) (*@$\actsfor$@*) (*@($\conf{$J$}$@*) @ (*@$\conf{\bot} \conj \integ{$ J$}$)@*)) ()
+  ((*@$\lambda^{J}$@*) _ . assume (*@$\conf{\mathsf{Alice}}$@*) (*@$\actsfor$@*) (*@($\conf{$J$}$@*) @ (*@$\conf{\bot} \conj \integ{$ J$}$)@*)) ()
   s <- label "Shake It Off" (*@($\conf{$J$} \conj \integ{\mathsf{Alice}}$)@*)
   vote s) ()
 \end{lstlisting}
@@ -100,7 +100,7 @@ Figure~\ref{fig:prevent-double-voting} shows how the jukebox can use $\mathtt{ca
 \end{figure}
 
 \subsection{Government agency records}
-As a final example demonstrating the usefulness of \lang, we show how confidential delegations can be used to keep government agency records. For this example we use a simple extension of \lang{} that allows ownership projections as nodes in the system. The example could be rewritten to delegate the ownership projections to named, but we omit this to simplify the presentation of the example.
+As a final example demonstrating the usefulness of \lang, we show how confidential delegations can be used to keep government agency records. For this example we use a simple extension of \lang{} that allows ownership projections as nodes in the system. The example could be rewritten to delegate the ownership projections to named principals, but we omit this to simplify the presentation of the example.
 
 Figure~\ref{fig:govt-alice-checks-bob} shows an example of a scenario where $\owner{\mathsf{CIA}}{\mathsf{Alice}}$ verifies that $\mathsf{Bob}$ is also a secret agent. First, $\mathsf{Alice}$ and $\mathsf{Bob}$ are both hired as secret agents by the $\mathsf{CIA}$ by delegating the principal $\mathsf{Agents}$ to $\owner{\mathsf{CIA}}{\mathsf{Alice}}$ and $\owner{\mathsf{CIA}}{\mathsf{Bob}}$. Obviously not everyone should know that they are secret agents, and so we put the confidentiality of this delegation to be $\mathsf{Agents}$, such that only agents can learn the identity of other agents.
 
