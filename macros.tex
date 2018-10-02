@@ -74,14 +74,20 @@
 \newcommand{\unit}{\mathsf{Unit}}
 \newcommand{\String}{\mathsf{String}}
 \newcommand{\Integer}{\mathsf{Int}}
+\newcommand{\lbool}{\mathsf{LBool}}
+\newcommand{\lunit}{\mathsf{LUnit}}
+\newcommand{\lString}{\mathsf{LString}}
+\newcommand{\lInteger}{\mathsf{LInt}}
 \newcommand{\func}[2]{#1 \to #2}
 \newcommand{\pair}[2]{#1 \times #2}
 \newcommand{\listtype}[1]{\lbrack#1\rbrack}
 \newcommand{\labeltype}{\mathsf{Principal}}
+\newcommand{\llabeltype}{\mathsf{LPrincipal}}
 \newcommand{\labeledkw}{\mathsf{Labeled}}
 \newcommand{\labeled}[1]{\labeledkw\,#1}
 \newcommand{\liotype}[1]{\liokw\,#1}
 \newcommand{\refkw}{\mathsf{Ref}}
+\newcommand{\lrefkw}{\mathsf{LRef}}
 \NewDocumentCommand{\reftype}{ O{} m}{\refkw_{#1}\,#2}
 \newcommand{\store}{\phi}
 \newcommand{\altstore}{\psi}
@@ -168,7 +174,7 @@
     tabsize=4,
     captionpos=b,
     emph={%  
-    true, false, nil, if, then, else, case, of, fix, return, new, label, unlabel, toLabeled, getLabel, getClearance, labelOf, withScope, withStrategy, assume, discard, getStrategy, wait, resetStrategy, resetScope, Bool, Unit, Principal, Labeled, LIO, Ref
+    true, false, nil, if, then, else, case, of, fix, return, new, label, unlabel, toLabeled, getLabel, getClearance, labelOf, withScope, withStrategy, assume, discard, getStrategy, wait, resetStrategy, resetScope, Bool, Unit, Principal, Labeled, LIO, Ref, LBool, LUnit, LPrincipal, LLabeled, LLIO, LRef
     },
     emphstyle={\bfseries}
 }

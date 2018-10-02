@@ -8,7 +8,7 @@ Point \ref{enum:no-func-across-network} does not lead to loss of expressivity: A
 
 Point \ref{enum:cache-network-queries} reduces network communication a lot, but means that the implementation is unsound if the trust relationship between principals change during query resolution. In practice this is not an issue, as orthogonal work on query isolation \cite{Liu:2009:FPS:1629575.1629606} can provide transactional behavior for distributed systems like \lang.
 
-Using this implementation we have constructed three use cases for \lang. The first use case is a distributed bank, in which users can perform RPCs to handle transactions across accounts between different users. The second use case is a social jukebox service \cite{Sprague:2008:MSU:1385569.1385652} where people can schedule music during social gatherings. The third use case is a secure database containing confidential information about government agencies.
+Using this implementation we have constructed three use cases for \lang. The first use case is a distributed bank, in which users can perform RPCs to handle transactions across accounts between different users. The second use case is a social jukebox service \cite{Sprague:2008:MSU:1385569.1385652} where people can schedule music during social gatherings. The third use case is a secure database containing confidential information about government agencies. For a type $\type$ we write $L\type$ to denote the type $\labeled{\type}$. That is, \lstinline|LUnit| abbreviates \lstinline|Labeled Unit|.
 
 \subsection{Secure banking}
 We first consider a secure banking service $S$. For simplicity we assume the language has been extended with numbers and strings. A user is represented by a named principal $n$, and each user has an account consisting of a single nonnegative number representing their balance. A user authenticates themselves by invoking the function $\mathtt{login}$ which receives the user, a labeled string representing the password, and a callback to invoke if the authentication succeeds. Furthermore, we assume a primitive $\mathtt{transfer}$ for transferring money between two accounts. The signatures of these functions is given in Figure~\ref{fig:sec-banking-sigs}.
@@ -23,8 +23,8 @@ Another scenario is modeled in Figure~\ref{fig:sec-bank-alice-banks-for-bob}, wh
 \begin{figure}
     \centering
     \begin{align*}
-\mathtt{login}&: \labeltype \to \labeled{\mathtt{String}} \\ &\quad \to \liotype{\unit} \to \liotype{\unit}\\
-\mathtt{transfer}&: \labeltype \to \labeltype \to \Integer \to \liotype{\unit}
+\mathtt{login}&: \labeltype \to \labeled{\mathtt{String}} \\ &\quad \to \liotype{\unit} \to \liotype{\lunit}\\
+\mathtt{transfer}&: \labeltype \to \labeltype \to \Integer \to \liotype{\lunit}
 \end{align*}
     \caption{Primitives for implementing secure banking.}
     \label{fig:sec-banking-sigs}
@@ -61,9 +61,9 @@ Another scenario is modeled in Figure~\ref{fig:sec-bank-alice-banks-for-bob}, wh
 \subsection{A secure social jukebox service}
 We now consider a secure version of a social jukebox service. A group of principals $\Nameset$ is gathered at a party and want to vote on which songs should be played at the party. Furthermore, the principals do not want their votes leaked to the other principals. We assume a distinguished principal $J \in \Nameset$ (for jukebox) representing a machine supporting the following primitive functions.
 \begin{align*}
-\mathtt{vote}&: \labeled{\String} \to \liotype{\unit}\\
-\mathtt{candidates}&: \unit \to \liotype{\listtype{\pair{\String}{\listtype{\labeled{\labeltype}}}}}\\
-\mathtt{play}&: \String \to \liotype{\unit}
+\mathtt{vote}&: \labeled{\String} \to \liotype{\lunit}\\
+\mathtt{candidates}&: \unit \to \liotype{(\labeled{\listtype{\pair{\String}{\listtype{\llabeltype}}}})}\\
+\mathtt{play}&: \String \to \liotype{\lunit}
 \end{align*}
 The function $\mathtt{vote}$ casts a vote for the song represented by the labeled string argument. The integrity of the labeled string defines the voter of this song.
 
