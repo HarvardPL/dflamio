@@ -121,9 +121,9 @@ where $S(m) = \config{\altglobalstore(n)}{\llbracket \expr \rrbracket_n(m)}$. We
 
 \begin{theorem}[Noninterference]\label{thm:ni}
 Let $\expr$ satisfy $\hastype{n; \tenv}{\expr}{\type}$.
-If $\gconfig{n}{\varnothing}{S} \gstepstos[][A \filtertrace t]$ for $S(m) = \config{\globalstore(m)}{\llbracket \expr \rrbracket_n(m)}$ such that $\good{A}{t}$ then $k^n_{\Attacker}(\globalstore, \expr, t) \supseteq k^n_{\Attacker}(\globalstore, \expr)$.
+If $\gconfig{n}{\varnothing}{S} \gstepstos[][\Attacker \filtertrace t]$ for $S(m) = \config{\globalstore(m)}{\llbracket \expr \rrbracket_n(m)}$ such that $\good{\Attacker}{t}$ then $k^n_{\Attacker}(\globalstore, \expr, t) \supseteq k^n_{\Attacker}(\globalstore, \expr)$.
 \end{theorem}
 
 Theorem~\ref{thm:ni} is proved using a generalized version of the statement that quantifies over any two $\Attacker$-equivalent global configurations $\gconfig{n_1}{\env_1}{S_1}$, $\gconfig{n_2}{\env_2}{S_2}$ and proves that they emit $\Attacker$-equivalent observable traces. An important invariant obtained by quantifying only over good traces is that whenever $\actsforquery{n; \env_1}{p}{q}{\level}$ and $\nopostflowstoquery{n; \env_1}{\level}{\Attacker}$ it holds that $\actsforquery{n; \env_2}{p}{q}{\level}$ and $\nopostflowstoquery{n; \env_2}{\level}{\Attacker}$. The technical report \cite{techreport} contains a complete proof of Theorem~\ref{thm:ni}.
 
-As seen in \ruleref{E-Get-Label} in Figure~\ref{fig:monadic-reductions}, the current label is public information. Thus, one might wonder if it is possible to raise the current label depending on information that should not flow to an attacker - perhaps by some clever trust checking that unlabels different delegations in two different, but $\Attacker$-equivalent, runs. But as Theorem~\ref{thm:ni} shows, an attacker cannot learn any information by inspecting the current label.
+As seen in \ruleref{E-Get-Label} in Figure~\ref{fig:monadic-reductions}, the current label is public information. Thus, one might wonder if it is possible to raise the current label depending on information that should not flow to an attacker - perhaps by some clever trust checking that unlabels different delegations in two different (but $\Attacker$-equivalent) executions. But as Theorem~\ref{thm:ni} shows, an attacker cannot learn any information by inspecting the current label.
