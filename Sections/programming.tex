@@ -5,10 +5,7 @@ Given a named principal $n \in \Nameset$ (e.g., Alice or Bob) we call $n$ a \emp
 \subsection{Remote Procedure Calls}
 Nodes in \lang{} communicate by remote invocation of functions on different machines. We annotate functions with the node on which the function should be evaluated. That is, the application $\app{(\abs{n}{p}{x}{\expr})}{\expr'}$ denotes a function $\abs{n}{p}{x}{\expr}$ located on machine $n$ should be evaluated with argument $\expr'$ and the returned expression will be given label $p$. The label serves a purpose as $\tolabeledkw$, where labeling the value helps mitigate label creep by delaying the effect of raising the current label until the value is needed.
 
-For instance, the expression
-\begin{lstlisting}
-((*@$\lambda^{n}_{p}$@*) x . not x) b >>= (*@$\lambda^{m}_{m}$@*) y . unlabel y
-\end{lstlisting}
+For instance, the expression \lstinline[mathescape]!($\lambda^{n}_{p}$ x . not x) b >>= $\lambda^{m}_{m}$ y . unlabel y!
 computes the negation of the boolean $b$ on node $n$ and returns the result as a labeled value with label $p$, which is then unlabeled on node $m$. After receiving the labeled value computed by node $n$, node $m$ needs to unlabel the value to use it. The unlabel command checks that $p \flowsto \conf{n}$.
 
 \subsection{Proof search}
