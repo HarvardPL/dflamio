@@ -2,11 +2,14 @@ We have implemented \lang{} as a library in Haskell. The code is approximately 2
 \begin{enumerate}
     \item \label{enum:no-func-across-network} An RPC invocation does not send the function that should be called across the network. Instead, the receiver of the RPC has a table mapping identifiers to functions, and the caller sends this identifier along with the list of arguments.
     \item \label{enum:cache-network-queries} Since query results obtained via network communication is cached on a per-query basis, no two identical queries is sent to the same node.
+    \item \label{enum:del-1-rule} The \ruleref{Del-1} rule does not inspect the principals in the delegation before it unlabels them, but instead unlabels all delegations whose label flow to the strategy.
 \end{enumerate}
 
-Point \ref{enum:no-func-across-network} does not lead to loss of expressivity: As shown in \cite{Cooper:2009:RC:1599410.1599439} one can translate a program written in a calculus similar to the calculus presented in Section~\ref{sec:calculus} to a program written in Haskell using the \lang{} implementation by performing defunctionalization.
+First, \ref{enum:no-func-across-network}) does not lead to loss of expressivity: As shown in \cite{Cooper:2009:RC:1599410.1599439} one can translate a program written in a calculus similar to the calculus presented in Section~\ref{sec:calculus} to a program written in Haskell using the \lang{} implementation by performing defunctionalization.
 
-Point \ref{enum:cache-network-queries} reduces network communication a lot, but means that the implementation is unsound if the trust relationship between principals change during query resolution. In practice this is not an issue, as orthogonal work on query isolation \cite{Liu:2009:FPS:1629575.1629606} can provide transactional behavior for distributed systems like \lang.
+Second, \ref{enum:cache-network-queries}) reduces network communication a lot, but means that the implementation is unsound if the trust relationship between principals change during query resolution. In practice this is not an issue, as orthogonal work on query isolation \cite{Liu:2009:FPS:1629575.1629606} can provide transactional behavior for distributed systems like \lang.
+
+Third, \ref{enum:del-1-rule}) simplifies the implementation by not breaking the model of LIO: Labeled values remain completely ``opague'' until unlabeled, which is not the case for the semantics described in Section~\ref{sec:calculus}. By adhering to the model of LIO the guarantees given in previous work on LIO \cite{SRMMlio} remain true.
 
 Using this implementation we have constructed three use cases for \lang. The first use case is a distributed bank, in which users can perform RPCs to handle transactions across accounts between different users. The second use case is a social jukebox service \cite{Sprague:2008:MSU:1385569.1385652} where people can schedule music during social gatherings. The third use case is a secure database containing confidential information about government agencies. For a type $\type$ we write $L\type$ to denote the type $\labeled{\type}$. That is, \lstinline|LUnit| abbreviates \lstinline|Labeled Unit|.
 
@@ -23,7 +26,7 @@ Another scenario is modeled in Figure~\ref{fig:sec-bank-alice-banks-for-bob}, wh
 \begin{figure}
     \centering
     \begin{align*}
-\mathtt{login}&: \labeltype \to \labeled{\mathtt{String}} \\ &\quad \to \liotype{\unit} \to \liotype{\lunit}\\
+\mathtt{login}&: \labeltype \to \mathtt{LString} \to \liotype{\unit} \to \liotype{\lunit}\\
 \mathtt{transfer}&: \labeltype \to \labeltype \to \Integer \to \liotype{\lunit}
 \end{align*}
     \caption{Primitives for implementing secure banking.}
