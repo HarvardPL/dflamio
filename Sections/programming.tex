@@ -1,6 +1,6 @@
 In this section we informally introduce \lang{} and the concepts needed to combine LIO and FLAM. Section~\ref{sec:calculus} will then formalize the intuitions presented in this section. We do so by demonstrating the usefulness of \lang{}\ in the context of a secure, decentralized banking application, which we also discuss in Section~\ref{sec:case-studies}.
 
-Given a named principal $n \in \Nameset$ (e.g., Alice or Bob) we call $n$ a \emph{node} when referring to the machine executing code on $n$'s behalf. We assume each named principal has a corresponding machine executing code on its behalf. Initially, the current label of node $n$ is $\conf{\bot} \wedge \integ{n}$ and the clearance label is $\conf{n} \wedge \integ{\bot}$\footnote{We follow previous conventions \cite{Arden:2015:FA:2859845.2859998} and omit projections of the $\bot$ principal in the remainder of the paper}. The initial current label represents the fact that the node has observed no information, and no information has affected the integrity of the node. The clearance specifies that $n$ can only observe information labeled with a label that flows to $n$ and that $n$ can access information independently of its integrity. \TODO{I don't like this explanation of $\integ{\bot}$. Do you have a better way of phrasing this?} We discuss two important aspects of \lang: Cross node communication using remote procedure calls, and distributed proof search of trust relationships.
+Given a named principal $n \in \Nameset$ (e.g., Alice or Bob) we call $n$ a \emph{node} when referring to the machine executing code on $n$'s behalf. We assume each named principal has a corresponding machine executing code on its behalf. Initially, the current label of node $n$ is $\conf{\bot} \wedge \integ{n}$ and the clearance label is $\conf{n} \wedge \integ{\bot}$\footnote{We follow previous conventions \cite{Arden:2015:FA:2859845.2859998} and omit projections of the $\bot$ principal in the remainder of the paper}. The initial current label represents the fact that the node has observed no information, and no information has affected the integrity of the node. The clearance specifies that $n$ can only observe information labeled with a label that flows to $n$ and that $n$ can access information independently of its integrity. We discuss two important aspects of \lang: Cross node communication using remote procedure calls, and distributed proof search of trust relationships.
 
 \subsection{Remote Procedure Calls}
 Nodes in \lang{} communicate by remote invocation of functions on different machines. We annotate functions with the node on which the function should be evaluated. That is, the application $\app{(\abs{n}{p}{x}{\expr})}{\expr'}$ denotes a function $\abs{n}{p}{x}{\expr}$ located on machine $n$ which should be evaluated with argument $\expr'$ and the returned term is labeled with principal $p$. The label serves a purpose similar to $\tolabeledkw$, where labeling the value helps mitigate label creep by delaying the effect of raising the current label until the value is needed.
@@ -14,9 +14,7 @@ is evaluated on a principal $\mathsf{bank}$, and returns a labeled principal lab
 However, Alice can unlabel the returned access token, as it holds that $\integ{\mathsf{bank}} \flowsto \conf{\mathsf{Alice}}$ (i.e., the clearance label of node Alice). So while Alice cannot forge new access tokens, she is free to inspect whether the token grants her access to the bank.
 
 \subsection{Proof search}
-In many practical scenarios, proving trust relationships of the form $p \actsfor q$ requires distributed knowledge spread across multiple nodes. In this section we will see examples of this, as well as how distributed proof search of trust relationships in \lang{} is realized. The three most important aspects of the proof search is the idea of constructing and using delegations, as well as managing delegations using \emph{strategies} and the idea of forwarding trust checking to other nodes in the system. After discussing these concepts we will apply them in the context of the decentralized banking application.
-
-We keep the discussion informal, and defer precise formulations of the concepts until in Section~\ref{sec:calculus}.
+In many practical scenarios, proving trust relationships of the form $p \actsfor q$ requires distributed knowledge spread across multiple nodes. In this section we will see examples of this, as well as how distributed proof search of trust relationships in \lang{} is realized. The three most important aspects of the proof search is the idea of constructing and using delegations, as well as managing delegations using \emph{strategies} and the idea of forwarding trust checking to other nodes in the system. After discussing these concepts we will apply them in the context of the decentralized banking application. We keep the discussion informal, and defer precise formulations of the concepts until in Section~\ref{sec:calculus}.
 
 \paragraph{Delegations}
 A delegation is of the form $\lb{r}{p \actsfor q}$ (pronounced $r$ \emph{says that} $p$ \emph{acts for} $q$), and we call $r$ the label of the delegation, or say that the delegation is labeled with principal $r$, and we call $p \actsfor q$ the body of the delegation. The terminology arises naturally as delegations are implemented as labeled pairs in LIO, and are subjected to the same runtime checks. In particular, a delegation can be used by a proof search on a node $n$ when $r \flowsto \conf{n}$. This requirement enforces the policy that the label of the delegation flows to the clearance of node $n$, meaning that $n$ cannot observe the presence of delegations labeled with a label that does not flow to its clearance label.
@@ -27,6 +25,39 @@ One approach would be to always unlabel all available delegations during proof s
 An alternative approach would be to design algorithms that unlabels just the right amount of delegations in order to satisfy the query, and no other. But as delegations are implemented using labeled and thus completely opaque values, it is not possible to observe the body of the delegation before the delegation is unlabeled and the current label has already been raised. This means an algorithm has to decide whether to unlabel a delegation by only inspecting the label of the delegation, making clever algorithm design difficult.
 
 For these reasons \lang{} uses \emph{strategies}, which are lists of principals, to specify which delegations is used in a proof, and in which order. For instance, if the delegation $\lb{r}{p \actsfor q}$ is stored on node $n$ and $n$ is evaluating the expression \lstinline[mathescape]!withStrategy [s, r, t] (p $\actsfor$ q)! the node will first search for the delegations with a label that flows to $s$. Assuming no delegations that satisfy this proves the query, delegations with a label that flows to $r$ is used, and the delegation $\lb{r}{p \actsfor q}$ can now be used to complete the proof search. This example demonstrates how \lang{} performs fine-grained proof search with specialized strategies for handling delegations, giving the programmer the ability to securely minimize label creep by taking advantage of domain-specific knowledge about a particular application.
-% Rewrite this
+
 \paragraph{Forwarding}
-A node $n$ can forward the checking of trust checking to a node $m$ when $n$'s current label flows to $\conf{m}$. Combining uses of this rule with delegations, this allows a node to use delegations stored on other nodes in the system. For instance, a server $s$ can represent users authorized by $s$ by delegating ownership projections $\owner{s}{u}$ for every authorized user $u$. The delegation $\lb{\integ{s}}{\owner{s}{u} \actsfor \mathsf{users}}$ then represents that user $u$ is authorized\footnote{This encoding of group membership prevents \emph{delegation loophole} as defined in \cite{Arden:2015:FA:2859845.2859998}. We omit the details of ownership projections as they are not important for this motivating example.}. Another user $u'$ can then evaluate \lstinline[mathescape]!withStrategy [$\integ{s}$] ($\owner{s}{u} \actsfor \mathsf{users}$)! and forward the proof search to the server, which will succeed and return a positive answer back to $u'$.
+A node $n$ can forward trust checking to a node $m$ when $n$'s current label flows to $\conf{m}$. This check ensures that $m$ is allowed to learn about the information that caused $n$ to initiate the query, and Figure~\ref{fig:leak-via-forward} demonstrates how such a leak can be constructed without the check. If $\mathsf{aliceSecret}$ is labeled with $\conf{\mathsf{Alice}}$, the unlabel operation will raise the current label $\level_{\mathsf{cur}}$ to $\level_{\mathsf{cur}} \join \conf{\mathsf{Alice}}$ tracking the fact that control flow depends on information at level at most $\level_{\mathsf{cur}} \join \conf{\mathsf{Alice}}$. Upon forwarding the $p \actsfor q$ query to another node $m$, Alice reveals that $\mathsf{aliceSecret}$ contained a non-zero value. Checking that Alice's current label flows to $\conf{m}$ ensures that $m$ is allowed to learn this information.
+
+\begin{figure}
+    \centering
+    \begin{lstlisting}
+    ((*@$\lambda^{\mathsf{alice}}_{\botinfoflow}$@*) _ . do h <- unlabel aliceSecret
+                   if h then (*@$p \actsfor q$@*) else return 0) ()
+    \end{lstlisting}
+    \caption{Opportunity for leaking the value of $\mathsf{aliceSecret}$ using a trust relationship query without the information-flow check.}
+    \label{fig:leak-via-forward}
+\end{figure}
+
+Consider an implementation of $\mathsf{transfer}$ that transfers $n$ dollars from user $u_\mathsf{from}$ to $u_\mathsf{to}$ using access token $\mathsf{tok}$.
+
+\begin{lstlisting}
+transfer = (*@$\lambda^{\mathsf{bank}}_{\botinfoflow}$@*) tok (*@$\mathsf{u}_\mathsf{from}$@*) (*@$\mathsf{u}_\mathsf{to}$@*) n . do
+              u <- unlabel tok
+              withStrategy [(*@$\botinfoflow$@*)]
+                (if u (*@$\actsfor$@*) (*@$\mathsf{u}_\mathsf{from}$@*) then transfer# (*@$\mathsf{u}_\mathsf{from}$@*) (*@$\mathsf{u}_\mathsf{to}$@*) n
+                 else return ())
+\end{lstlisting}
+
+First, the access token $\mathsf{tok}$ acquired by $\mathsf{login}$ is unlabeled, revealing the identity of the caller. A check is then done to ensure that the caller can act on behalf of the user on which money are being transferred from. For this example the bank requires the trust relationship to be public information with high integrity, which is reflected in the strategy specifying that only delegations at level $\botinfoflow$ is used. In this example a primitive function $\mathsf{transfer\#}$ performs the actual transferring of money, and if the trust relationship cannot be established the function simply returns a unit value. Figure~\ref{fig:bob-transfer-from-alice} demonstrates how Bob can transfer money from Alice if she grants Bob the appropriate trust.
+
+\begin{figure}
+\centering
+\begin{lstlisting}
+(*@$\lambda^{\mathsf{alice}}$@*) _ . do assume bob (*@$\actsfor$@*) alice @ (*@$\botinfoflow$@*)
+              (*@$\lambda^{\mathsf{bob}}$@*) _ . do tok <- login bob "password"
+                           transfer tok alice bob 50
+\end{lstlisting}
+\caption{Alice grants Bob access to perform transfers on her behalf.}
+\label{fig:bob-transfer-from-alice}
+\end{figure}
