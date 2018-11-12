@@ -148,7 +148,7 @@ Note that the computation is decentralized, and multiple machines with different
     \and
     \inferrule[Del]{\mathsf{ss} = \env_n . \strategy \\\\ \actsforquerysmany{C}{\mathsf{ss}}{p}{q}{\level}}{\actsforquery{C}{p}{q}{\level}}
     \and
-    \inferrule[Fwd]{\flowstoquery{C}{\env_n . \lblkw}{m}{\level_1} \\\\ \actsforquery{\Assumps; m; \extend{\env}{m}{\extend{\env_m}{\strategy}{\env_n.\strategy}}}{p}{q}{\level_2} }{\actsforquery{C}{p}{q}{\level_1 \join \level_2}}
+    \inferrule[Fwd]{\flowstoquery{C}{\env_n . \lblkw}{\conf{m}}{\level_1} \\\\ \actsforquery{\Assumps; m; \extend{\env}{m}{\extend{\env_m}{\strategy}{\env_n.\strategy}}}{p}{q}{\level_2} }{\actsforquery{C}{p}{q}{\level_1 \join \level_2}}
     \end{mathpar}
     \caption{Acts for judgment of \lang. The meta-variable $C$ abbreviates $\Assumps; n; \env$}
     \label{fig:act-for-judgment}

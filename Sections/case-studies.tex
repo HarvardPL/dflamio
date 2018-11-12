@@ -66,7 +66,7 @@ We now consider a secure version of a social jukebox service. A group of princip
 \begin{align*}
 \mathtt{vote}&: \labeled{\String} \to \liotype{\lunit}\\
 \mathtt{candidates}&: \unit \to \liotype{(\labeled{\listtype{\pair{\String}{\listtype{\llabeltype}}}})}\\
-\mathtt{play}&: \String \to \liotype{\lunit}
+\mathtt{play}&: \unit \to \liotype{\lunit}
 \end{align*}
 The function $\mathtt{vote}$ casts a vote for the song represented by the labeled string argument. The integrity of the labeled string defines the voter of this song.
 
@@ -79,7 +79,7 @@ Figure~\ref{fig:jukebox-alice-votes-for-taylor-swift} shows an example of $\math
 \begin{lstlisting}
 voted = (*@$\lambda^{J}$@*) s p .
   c <- candidates
-  anyM ((*@$\lambda^{\mathsf{Alice}}$@*) (s, vs). if s = s' then
+  anyM ((*@$\lambda^{\mathsf{Alice}}$@*) (s, vs). if s == s' then
                         vs' <- mapM unlabel vs
                         return (elem p vs')
                       else return false) c
