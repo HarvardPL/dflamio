@@ -53,23 +53,19 @@ vote = (*@$\lambda^{J}_{\botinfoflow}$@*) ls . do
 \subsection{Government agency records}\label{subsec:agents}
 As a final example demonstrating the usefulness of \lang, we show how confidential delegations can be used to keep government agency records. For this example, we use a simple extension of \lang{} that allows ownership projections as nodes in the system. The example could be rewritten to delegate the ownership projections to named principals, but we omit this to simplify the presentation of the example.
 
-Figure~\ref{fig:govt-alice-checks-bob} shows an example of a scenario where $\owner{\mathsf{CIA}}{\mathsf{Alice}}$ verifies that $\mathsf{Bob}$ is also a secret agent. First, $\mathsf{Alice}$ and $\mathsf{Bob}$ are both hired as secret agents by the $\mathsf{CIA}$ by delegating the principal $\mathsf{Agents}$ to $\owner{\mathsf{CIA}}{\mathsf{Alice}}$ and $\owner{\mathsf{CIA}}{\mathsf{Bob}}$. Not everyone should know that they are secret agents, and so we put the confidentiality of this delegation to be $\mathsf{Agents}$, such that only agents can learn the identity of other agents.
+Figure~\ref{fig:govt-alice-checks-bob} shows an example of a scenario where $\mathsf{Alice}$ verifies that $\mathsf{Bob}$ is also a secret agent. First, $\mathsf{Alice}$ and $\mathsf{Bob}$ are both hired as secret agents by the $\mathsf{CIA}$ by delegating the $\mathsf{CIA}$ principal to $\owner{\mathsf{CIA}}{\mathsf{Alice}}$ and $\owner{\mathsf{CIA}}{\mathsf{Bob}}$\footnote{The use of ownership principals prevent \emph{delegation loopholes} \cite{Arden:2015:FA:2859845.2859998}}. Not everyone should know that they are secret agents, and so we put the confidentiality of this delegation to be $\mathsf{CIA}$, such that only CIA can learn the identity of other agents.
 
-At some point $\mathsf{Alice}$ meets $\mathsf{Bob}$ ``in the field'' and wants to verify his claim that he is a secret agent for the $\mathsf{CIA}$. In order for $\mathsf{Alice}$ to verify this she has to check if the principal $\mathsf{Agents}$ delegates to $\owner{\mathsf{CIA}}{\mathsf{Bob}}$. For $\mathsf{Alice}$ to prove this query she uses the \ruleref{Fwd} rule and delegates the query to the $\mathsf{CIA}$ principal. The $\mathsf{CIA}$ principal proves the query $\owner{\mathsf{CIA}}{\mathsf{Bob}} \actsfor \mathsf{Agents}$ using delegations up to level $\mathsf{Agents}$ in the process. So for $\mathsf{Alice}$ to use this information she must prove that $\mathsf{Agents} \flowsto \owner{\mathsf{CIA}}{\mathsf{Alice}}$. This can be done using another application of the \ruleref{Fwd} rule which contacts the $\mathsf{CIA}$ principal and proves the query. Note that, once again, $\mathsf{Alice}$ has to prove that $\mathsf{Agents} \flowsto \owner{\mathsf{CIA}}{\mathsf{Alice}}$ in order to use the delegation provided by the $\mathsf{CIA}$. But now $\mathsf{Agents} \flowsto \owner{\mathsf{CIA}}{\mathsf{Alice}}$ becomes an assumption, and $\mathsf{Alice}$ can prove the required trust relationship using \ruleref{Hyp}.
-$\mathsf{Alice}$ can now trust the answer received from $\mathsf{CIA}$ and know if $\mathsf{Bob}$ is also a secret agent.
+At some point $\mathsf{Alice}$ meets $\mathsf{Bob}$ ``in the field'' and wants to verify his claim that he is a secret agent for the $\mathsf{CIA}$. In order for $\mathsf{Alice}$ to verify she checks if the principal $\mathsf{CIA}$ delegates to $\owner{\mathsf{CIA}}{\mathsf{Bob}}$. For $\mathsf{Alice}$ to prove this query she uses the \ruleref{Fwd} rule and delegates the query to the $\mathsf{CIA}$ principal. The $\mathsf{CIA}$ principal proves the query $\owner{\mathsf{CIA}}{\mathsf{Bob}} \actsfor \mathsf{CIA}$ using delegations up to level $\mathsf{CIA}$ in the process. So for $\mathsf{Alice}$ to use this information she must prove that $\integ{\owner{\mathsf{CIA}}{\mathsf{Alice}}} \join \mathsf{CIA} \flowsto \conf{\owner{\mathsf{CIA}}{\mathsf{Alice}}}$, which is equivalent to $\conf{\owner{\mathsf{CIA}}{\mathsf{Alice}}} \conj \integ{(\owner{\mathsf{CIA}}{\mathsf{Alice}} \disj \mathsf{CIA})} \actsfor \conf{\mathsf{CIA}}$. This can be proven using another forward query to node $\mathsf{CIA}$.
 
 \begin{figure}
 \centering
 \begin{lstlisting}
-((*@$\lambda^{\owner{\mathsf{CIA}\,}{\,\mathsf{Alice}}}$@*) _ . assume (*@$\integ{\mathsf{Agents}}$@*) (*@$\actsfor$@*) (*@$\integ{\owner{\mathsf{CIA}}{\mathsf{Alice}}}$@*) @ (*@$\owner{\mathsf{CIA}}{\mathsf{Alice}}$@*)) ()
+(*@$\lambda^{\mathsf{CIA}}_{\botinfoflow}$@*) _ . assume CIA:Alice CIA CIA
+          assume CIA:Bob CIA CIA
 [...]
-((*@$\lambda^{\mathsf{CIA}}$@*) _ . assume (*@$\owner{\mathsf{CIA}}{\mathsf{Alice}}$@*) (*@$\actsfor$@*) (*@$\mathsf{Agents}$@*) @ (*@$\mathsf{Agents}$@*)
-           assume (*@$\owner{\mathsf{CIA}}{\mathsf{Bob}}$@*) (*@$\actsfor$@*) (*@$\mathsf{Agents}$@*) @ (*@$\mathsf{Agents}$@*)) ()
-[...]
-((*@$\lambda^{\mathsf{Alice}}$@*) _ . isAgent <- (*@$\owner{\mathsf{CIA}}{\mathsf{Bob}}$@*) (*@$\actsfor$@*) agents
-         if isAgent then
-           // Alice can trust Bob to be a secret agent
-         else [...]) ()
+(*@$\lambda^{\owner{\mathsf{CIA}\,}{\,\mathsf{Alice}}}_{\botinfoflow}$@*) _ . withStrategy [CIA] (do
+               isAgent <- CIA:Bob (*@$\actsfor$@*) CIA
+               if isAgent then [...] else [...])
 \end{lstlisting}
 \caption{$\mathsf{Alice}$ verifies that $\mathsf{Bob}$ is a secret agent for the $\mathsf{CIA}$.}
 \label{fig:govt-alice-checks-bob}
