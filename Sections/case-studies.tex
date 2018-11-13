@@ -11,92 +11,40 @@ Second, \ref{enum:cache-network-queries}) reduces network communication a lot, b
 
 Third, \ref{enum:del-1-rule}) simplifies the implementation by not breaking the model of LIO: Labeled values remain completely ``opaque'' until unlabeled, which is not the case for the semantics described in Section~\ref{sec:calculus}. By adhering to the model of LIO, the guarantees given in previous work on LIO \cite{SRMMlio} remain true. Furthermore, unlabeling more delegations makes the usage of strategies even more important, as this provides customization of query resolution specifically to a given application domain.
 
-Using this implementation, we have constructed three use cases for \lang. The first use case is a distributed bank, in which users can perform RPCs to handle transactions across accounts between different users. The second use case is a social jukebox service \cite{Sprague:2008:MSU:1385569.1385652} where people can schedule music during social gatherings. The third use case is a secure database containing confidential information about government agencies. For a type $\type$ we write $L\type$ to denote the type $\labeled{\type}$. That is, \lstinline|LUnit| abbreviates \lstinline|Labeled Unit|.
+Using this implementation, we have constructed three use cases for \lang. The first use case is a distributed bank, which was already presented in Section~\ref{sec:programming}. The banking example shows how users can perform remote procedure calls to handle transactions across accounts between different users. A user $u$ can authorize another user $u'$ to transfer money on behalf $u$ by adding a delegation specifying that $u'$ can act on behalf of $u$ and rely on forwarding trust queries to resolve the authorization policy.
 
-\subsection{Secure banking}\label{subsec:banking}
-We first consider a secure banking service $S$. For simplicity, we assume the language is extended with numbers and strings. A user is represented by a named principal $n$, and each user has an account consisting of a single non-negative number representing their balance. A user authenticates themselves by invoking the function $\mathtt{login}$ which receives the user, a labeled string representing the password, and a callback to invoke if the authentication succeeds. Furthermore, we assume a primitive $\mathtt{transfer}$ for transferring money between two accounts. Figure~\ref{fig:sec-banking-sigs} gives the signatures of these functions.
-Using these primitives, we can model several complex scenarios. For instance in Figure~\ref{fig:sec-bank-alice-send-to-bob}, $\mathsf{Alice}$ authenticates with the bank and sends $\mathsf{Bob}$ 100 dollars.
-
-For $\mathsf{Alice}$ to authenticate with the server she needs to provide a password, and the password needs to be labeled with a principal such that only the server can read the password. Thus the server must trust the confidentiality $\conf{\mathsf{Alice}}$ to be able to enforce the confidentiality of the server $\conf{\mathsf{Server}}$. 
-
-Since the transfer reveals to $\mathsf{Bob}$ the fact that $\mathsf{Alice}$ has at least 100 dollars on her account, she needs to add a delegation stating that $\mathsf{Bob}$ is allowed to learn this information. Furthermore, $\mathsf{Alice}$ controls this delegation and $\mathsf{Alice}$ must allow this trust to be known to the server which is the principal that decides whether to allow the transfer. The label placed on the delegation reflects this decision.
-
-Figure~\ref{fig:sec-bank-alice-banks-for-bob} models another scenario, where we assume that $\mathsf{Alice}$ is already logged in and $\mathsf{Bob}$ gives $\mathsf{Alice}$ authority to act on his behalf. Specifically, he allows $\mathsf{Alice}$ to perform transfers from his account. To do this $\mathsf{Bob}$'s create a delegation labeled with his integrity stating that he trusts $\mathsf{Alice}$. The situation is then the same as in the previous use case, where Charlie must be allowed to learn the lower bound of $50$ on $\mathsf{Bob}$'s account. However, since this is a transfer performed by $\mathsf{Alice}$, it needs to have $\mathsf{Alice}$'s integrity. Thus $\mathsf{Alice}$ delegates $\mathsf{Bob}$'s confidentiality to $\mathtt{Charlie}$'s confidentiality. Finally, for the server to trust $\mathsf{Alice}$'s delegations the server needs to trust the integrity of $\mathsf{Alice}$. This trust is reflected in the three delegations shown in Figure~\ref{fig:sec-bank-alice-banks-for-bob}.
-
-\begin{figure}
-    \centering
-    \begin{align*}
-\mathtt{login}&: \labeltype \to \mathtt{LString} \to \liotype{\unit} \to \liotype{\lunit}\\
-\mathtt{transfer}&: \labeltype \to \labeltype \to \Integer \to \liotype{\lunit}
-\end{align*}
-    \caption{Primitives for implementing secure banking.}
-    \label{fig:sec-banking-sigs}
-\end{figure}
-
-\begin{figure}
-\centering
-\begin{lstlisting}
-((*@$\lambda^{\mathsf{Alice}}$@*) _ .
-  ((*@$\lambda^{\mathsf{Bank}}$@*) _ . assume (*@$\conf{\mathsf{Alice}}$@*) (*@$\actsfor$@*) (*@$\conf{\mathsf{Bank}}$@*) @ (*@$\integ{\mathsf{Bank}}$@*)) ()
-  pw <- label "password" ((*@$\conf{\mathsf{Bank}} \conj \integ{\mathsf{Alice}}$@*))
-  login (*@$\mathsf{Alice}$@*) pw
-    (withScope
-      assume (*@$\conf{\mathsf{Bob}}$@*) (*@$\actsfor$@*) (*@$\conf{\mathsf{Alice}}$@*) @ ((*@$\conf{\bot} \conj \integ{\mathsf{Alice}}$@*))
-      transfer (*@$\mathsf{Alice}$@*) (*@$\mathsf{Bob}$@*) 100)) ()
-\end{lstlisting}
-\caption{$\mathsf{Alice}$ authenticates with the server and sends money to $\mathsf{Bob}$.}
-\label{fig:sec-bank-alice-send-to-bob}
-\end{figure}
-
-\begin{figure}
-\centering
-\begin{lstlisting}
-((*@$\lambda^{\mathsf{Alice}}$@*) _ .
-  ((*@$\lambda^{\mathsf{Server}}$@*) _ . assume (*@$\conf{\mathsf{Alice}}$@*) (*@$\actsfor$@*) (*@$\conf{\mathsf{Server}}$@*) @ (*@$\conf{\bot} \conj \integ{\mathsf{Server}}$@*)) ()
-  ((*@$\lambda^{\mathsf{Bob}}$@*) _ . assume (*@$\mathsf{Alice}$@*) (*@$\actsfor$@*) (*@$\mathsf{Bob}$@*) @ (*@($\conf{\bot} \conj \integ{\mathsf{Bob}}$)@*)) ()
-  assume (*@$\conf{\mathsf{Charlie}}$@*) (*@$\actsfor$@*) (*@$\conf{\mathsf{Bob}}$@*) @ (*@($\conf{\bot} \conj \integ{\mathsf{Alice}}$)@*)
-  transfer (*@$\mathsf{Alice}$@*) (*@$\mathsf{Bob}$@*) 50)) ()
-\end{lstlisting}
-\caption{$\mathsf{Alice}$ performs a transfer on behalf of $\mathsf{Bob}$.}
-\label{fig:sec-bank-alice-banks-for-bob}
-\end{figure}
+In addition to the banking example, we have constructed a secure social jukebox service where people can schedule music during social gatherings. Finally, the third use case is a secure database containing confidential information about government agencies. For a type $\type$ we write $L\type$ to denote the type $\labeled{\type}$. That is, \lstinline|LUnit| abbreviates \lstinline|Labeled Unit|.
 
 \subsection{A secure social jukebox service}\label{subsec:jukebox}
-We now consider a secure version of a social jukebox service. A group of principals $\Nameset$ is gathered at a party and want to vote on which songs should be played at the party. Furthermore, the principals do not want their votes leaked to the other principals. We assume a distinguished principal $J \in \Nameset$ (for jukebox) representing a machine supporting the following primitive functions.
+We now consider a secure version of a social jukebox service. A group of principals $\Nameset$ is gathered at a party and want to vote on which songs should be played at the party. Furthermore, the principals do not want their votes leaked to the other principals. We assume a distinguished principal $J \in \Nameset$ (for jukebox) representing a node on which two functions exist:
 \begin{align*}
-\mathtt{vote}&: \labeled{\String} \to \liotype{\lunit}\\
-\mathtt{candidates}&: \unit \to \liotype{(\labeled{\listtype{\pair{\String}{\listtype{\llabeltype}}}})}\\
-\mathtt{play}&: \unit \to \liotype{\lunit}
+\mathtt{get}&: \liotype{(\pair{\String}{\listtype{\pair{\String}{\listtype{\llabeltype}}}})}\\
+\mathtt{put}&: (\pair{\String}{\listtype{\pair{\String}{\listtype{\llabeltype}}}}) \to \liotype{\unit}
 \end{align*}
-The function $\mathtt{vote}$ casts a vote for the song represented by the labeled string argument. The integrity of the labeled string defines the voter of this song.
+Function $\mathtt{get}$ retrieves a pair containing the current song being played, and a list of pairs containing a song and labeled principals representing who votes for this song. By labeling the votes with the label $\conf{J}$ they can securely be distributed for anyone to inspect, as no principal except for $J$ can unlabel the votes. However, while each vote is a labeled value, the list itself is not labeled so everyone can see which song has the most votes. Because of this, any node is free to call $\mathtt{get}$ without inappropriately learning confidential voter information.
 
-As we don't want to have a principal vote multiple times for the same song, we need to remember which principals have voted for each song. The function $\mathtt{candidates}$ returns a list of pairs $(s_1, \mathit{vs}_1), \dots, (s_n, {\mathit{vs}}_n)$ consisting of a song title $s_i$ and the list of principals who have voted for this song $\mathit{vs}_i$. As an additional feature to the party guests, we allow this function to be invoked by any principal so that the party principals can see which songs are currently being voted for. But, as we do not want to reveal the identity of each voter to the guests, each element in the list $\mathit{vs}_i$ is is labeled with the confidentiality of $J$ such that none of the untrusted party participants\footnote{Principals $p$ such that $\conf{J} \not\actsfor p$.} learn which participant votes for which song. So any principal can learn which songs for which there exists some principal that has voted for the song, but only the principals trusted with the confidentiality of $J$ can learn the identity of the voters.
-
-Figure~\ref{fig:jukebox-alice-votes-for-taylor-swift} shows an example of $\mathsf{Alice}$ voting for ``Shake it Off'' by Taylor Swift. First, the jukebox $J$ allows $\mathsf{Alice}$ to label data with the confidentiality of the jukebox such that she can send the song vote. This delegation must have a confidentiality label such that $\mathsf{Alice}$ is allowed to use this delegation. By making the presence of the delegation public, this is always guaranteed to be the case. Now $\mathsf{Alice}$ is allowed to label the song such that only the server can access the content, and the integrity of the labeled data reveals that this vote was cast by $\mathsf{Alice}$.
+Figure~\ref{fig:vote-for-song} implements a function $\mathtt{vote}$ that receives a song title, labeled with the identity of the voter, and updates the vote count using a function $\mathtt{insert}$. Figure~\ref{fig:jukebox-alice-votes-for-taylor-swift} shows an example of $\mathsf{Alice}$ voting for ``Shake it Off'' by Taylor Swift. First, Alice adds a delegation that allows $J$ to read Alice's labeled vote. She then labels her vote and invokes the $\mathtt{vote}$ function. When $\mathtt{vote}$ then unlabels the labeled song title, a forward query to Alice will be issued checking $\integ{J} \join \mathsf{Alice} \flowsto \conf{J}$, which is equivalent to $\conf{J} \conj \integ{(J \disj \mathsf{Alice})} \actsfor \conf{\mathsf{Alice}}$, and holds by the delegation that Alice placed in Figure~\ref{fig:jukebox-alice-votes-for-taylor-swift}.
 
 \begin{figure}
 \centering
 \begin{lstlisting}
-voted = (*@$\lambda^{J}$@*) s p .
-  c <- candidates
-  anyM ((*@$\lambda^{\mathsf{Alice}}$@*) (s, vs). if s == s' then
-                        vs' <- mapM unlabel vs
-                        return (elem p vs')
-                      else return false) c
+vote = (*@$\lambda^{J}_{\botinfoflow}$@*) ls . do
+  let p = labelOf ls
+  s <- unlabel ls
+  (curSong, songs) <- get
+  lp <- label (*@$\conf{J}$@*) p
+  put (curSong, insert lp s songs)
 \end{lstlisting}
-\caption{Preventing any principal from double voting.}
-\label{fig:prevent-double-voting}
+\caption{Implementing secure voting functionality}
+\label{fig:vote-for-song}
 \end{figure}
 
-Figure~\ref{fig:prevent-double-voting} shows how the jukebox can use $\mathtt{candidates}$ to implement a function $\mathtt{voted}: \String \to \labeltype \to \liotype{\bool}$ such that $\mathsf{voted}\; s\; p$ evaluates to $\true$ if and only if $p$ has voted for song $s$. The function unlabels the list of principals using a monadic function $\mathtt{mapM}: (\labeled{\labeltype} \to \liotype{\labeltype}) \to \listtype{\labeled{\labeltype}} \to \liotype{\labeltype}$ and checks if $p$ is an element of the list using a function $\mathtt{elem}: \labeltype \to \listtype{\labeltype} \to \bool$\footnote{Both $\mathtt{elem}$ and $\mathtt{mapM}$ are functions from the Haskell base library.}. Since each principal is labeled with some principal $q$ such that $\conf{q} \actsfor \conf{J}$ only principals for which $J$ has delegated confidentiality can unlabel the list elements.
-
 \begin{figure}
 \centering
 \begin{lstlisting}
-((*@$\lambda^{\mathsf{Alice}}$@*) _ .
-  ((*@$\lambda^{J}$@*) _ . assume (*@$\conf{\mathsf{Alice}}$@*) (*@$\actsfor$@*) (*@($\conf{$J$}$@*) @ (*@$\conf{\bot} \conj \integ{$ J$}$)@*)) ()
-  s <- label "Shake It Off" (*@($\conf{$J$} \conj \integ{\mathsf{Alice}}$)@*)
-  vote s) ()
+((*@$\lambda^{\mathsf{Alice}}_{\botinfoflow}$@*) _ . do assume (*@$\conf{J}$@*) (*@$\actsfor$@*) (*@$\conf{\mathsf{Alice}}$@*) @ (*@($\conf{\bot} \conj \integ{$ J$}$)@*)
+  ls <- label (*@$\mathsf{Alice}$@*) "Taylor Swift - Shake It Off"
+  vote ls) ()
 \end{lstlisting}
 \caption{$\mathsf{Alice}$ places a secret vote for Taylor Swift.}
 \label{fig:jukebox-alice-votes-for-taylor-swift}
