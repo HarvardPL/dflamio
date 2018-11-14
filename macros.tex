@@ -128,7 +128,7 @@
 
 \newcommand{\gconfig}[3]{\llparenthesis #1, #2, #3 \rrparenthesis}
 \NewDocumentCommand{\gstepsto}{ O{} O{} }{\xRightarrow[#1]{\mathmakebox[1em]{#2}}}
-\NewDocumentCommand{\gstepstos}{ O{} O{} O{*} }{\xRightarrow[#1]{\mathmakebox[1em]{#2}}{}\!\!^{#3}}
+\NewDocumentCommand{\gstepstos}{ O{} O{} O{*} }{{\xRightarrow[#1]{\mathmakebox[1.4em]{#2}}{}\!\!^{#3}}}
 
 \newcommand{\Assumps}{\mathcal{H}}
 \newcommand{\authproj}[1]{#1^{\pi}}
@@ -139,6 +139,7 @@
 \newcommand{\tenv}{\Gamma}
 \newcommand{\wf}[2]{#1 \vdash #2}
 \newcommand{\botinfoflow}{\bot^{\!\!\scalebox{0.5}[0.5]{$\flowsto$}}}
+\newcommand{\topinfoflow}{\top^{\raisebox{-.9pt}{\!\!\scalebox{0.5}[0.5]{$\flowsto$}}}}
 
 \newcommand{\event}{\mathit{ev}}
 \newcommand{\good}[2]{#1 \vdash \mathsf{good}(#2)}
@@ -176,7 +177,7 @@
     tabsize=4,
     captionpos=b,
     emph={%  
-    true, false, nil, if, then, else, case, of, fix, return, new, label, unlabel, toLabeled, getLabel, getClearance, labelOf, withScope, withStrategy, assume, discard, getStrategy, wait, resetStrategy, resetScope, Bool, Unit, Principal, Labeled, LIO, Ref, LBool, LUnit, LPrincipal, LString, LLabeled, LLIO, LRef, let, in
+    true, false, nil, if, then, else, case, of, fix, return, new, label, unlabel, toLabeled, getLabel, getClearance, labelOf, withScope, withStrategy, assume, discard, getStrategy, wait, resetStrategy, resetScope, Bool, Unit, Principal, Labeled, LIO, Ref, LBool, LUnit, LPrincipal, LString, LLabeled, LLIO, LRef, let, in, do
     },
     emphstyle={\bfseries}
 }

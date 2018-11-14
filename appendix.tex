@@ -1,4 +1,4 @@
-\begin{figure*}
+\noindent\begin{minipage}{\textwidth}
     \centering
     \begin{mathpar}
     \inferrule[E-Lift-Pure]{\steppure{\expr}{\expr'}}{\step{n; \env}{\config{\store}{\efill{\expr}}}{\config{\store}{\efill{\expr'}}}{\env_n}}
@@ -37,9 +37,8 @@
     \and
     \inferrule[E-Reset-Strategy]{\sigma = \extend{\env_n}{\strategy}{\vec{p}}}{\step{n; \env}{\config{\store}{\efill{\resetstrategy{\vec{p}}{\val}}}}{ \config{\store}{\efill{\val}}}{\sigma}}
     \and
-    \inferrule[E-Assume]{
-    \flowstoquery{n; \env}{\env_n.\lblkw}{r \flowsto n}{\level_1} \and \actsforquery{n; \env}{\env_n.\lblkw}{\voice{q}}{\level_2} \\\\ \nopostflowstoquery{n; \env}{\env_n.\lblkw \join \level_1 \join \level_2}{n} \\\\ \sigma = \extends{\env_n}{\scope \mapsto \cons{\lb{r}{(p, q)}}{\env . \scope}), \lblkw \mapsto \env_n.\lblkw \join \level_1 \join \level_2}}{\step{n; \env}{\config{\store}{\efill{\adddelegate{p}{q}{r}}}}{ \config{\store}{\efill{\return{()}}}}{\sigma}}
+    \inferrule[E-Assume]{\flowstoquery{n; \env}{\env_n.\lblkw}{r \flowsto n}{\level_1} \and \actsforquery{n; \env}{\env_n.\lblkw}{\voice{q}}{\level_2} \\\\ \nopostflowstoquery{n; \env}{\env_n.\lblkw \join \level_1 \join \level_2}{n} \\\\ \sigma = \extends{\env_n}{\scope \mapsto \cons{\lb{r}{(p, q)}}{\env . \scope}), \lblkw \mapsto \env_n.\lblkw \join \level_1 \join \level_2}}{\step{n; \env}{\config{\store}{\efill{\adddelegate{p}{q}{r}}}}{ \config{\store}{\efill{\return{()}}}}{\sigma}}
     \end{mathpar}
-    \caption{Monadic reductions for \lang{}}
+    \captionof{figure}{Monadic reductions for \lang{}}
     \label{fig:monadic-reductions}
-\end{figure*}
+\end{minipage}
