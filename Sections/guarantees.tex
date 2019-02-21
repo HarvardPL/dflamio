@@ -31,7 +31,7 @@ We augment the semantics from Section~\ref{sec:calculus} with events. Figure~\re
 \and
 \inferrule[G-Step-Ret-Ev]{S_n = \config{\store_n}{\efill{\wait{m}[\type]}} \and S_m = \config{\store_m}{\val ; \overline{\expr_m}} \\\\ \event = (\mathsf{ret}(\val, n), \env, m)}{\gconfig{m}{\env}{S} \gstepsto[][\event] \gconfig{n}{\env}{\extends{S}{n \mapsto \config{\store_n}{\efill{\val}}, m \mapsto \config{\store_m}{\overline{\expr_m}}}}}
 \and
-\inferrule[G-Step-Local-Ev]{\step{n; \env}[][\event]{S_n}{S'}{\sigma}}{\gconfig{n}{\env}{S} \gstepsto[][\event] \gconfig{n}{\extend{\env}{n}{\sigma}}{\extend{S}{n}{S'}}}
+\inferrule[G-Step-Local-Ev]{\step{n; \env}[][\event]{S_n}{s}{\sigma}}{\gconfig{n}{\env}{S} \gstepsto[][\event] \gconfig{n}{\extend{\env}{n}{\sigma}}{\extend{S}{n}{s}}}
 \and
 \inferrule[E-Assume-Ev]{
 [\ldots] \and \event = (\mathsf{release}(p, q, r), \env, n)}{\step{n; \env}[][\event]{\config{\store}{\efill{\adddelegate{p}{q}{r}}}}{ \config{\store}{\efill{\return{()}}}}{\sigma}}

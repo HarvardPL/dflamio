@@ -34,8 +34,8 @@ A node $n$ can forward trust checking to a node $m$ only if $n$'s current label 
 \begin{figure}
     \centering
     \begin{lstlisting}
-    ((*@$\lambda^{\mathsf{alice}}_{\botinfoflow}$@*) _ . do h <- unlabel aliceSecret
-                   if h then (*@$p \actsfor q$@*) else return 0) ()
+    (*@$\lambda^{\mathsf{alice}}_{\bot}$@*) _ . do h <- unlabel aliceSecret
+                   if h then (*@$p \actsfor q$@*) else return 0
     \end{lstlisting}
     \caption{Opportunity for leaking the value of $\mathsf{aliceSecret}$ using a trust relationship query without the information-flow check.}
     \label{fig:leak-via-forward}
@@ -44,7 +44,7 @@ A node $n$ can forward trust checking to a node $m$ only if $n$'s current label 
 Returning to the secure banking application, consider an implementation of $\mathsf{transfer}$ that transfers $n$ dollars from user $u_\mathsf{from}$ to $u_\mathsf{to}$ using access token $\mathsf{tok}$.
 
 \begin{lstlisting}
-transfer = (*@$\lambda^{\mathsf{bank}}_{\botinfoflow}$@*) tok (*@$\mathsf{u}_\mathsf{from}$@*) (*@$\mathsf{u}_\mathsf{to}$@*) n . do
+transfer = (*@$\lambda^{\mathsf{bank}}_{\bot}$@*) tok (*@$\mathsf{u}_\mathsf{from}$@*) (*@$\mathsf{u}_\mathsf{to}$@*) n . do
               u <- unlabel tok
               withStrategy [(*@$\integ{\mathsf{u}_{\mathsf{from}}}$@*)]
                 (if u (*@$\actsfor$@*) (*@$\mathsf{u}_\mathsf{from}$@*) then transfer# (*@$\mathsf{u}_\mathsf{from}$@*) (*@$\mathsf{u}_\mathsf{to}$@*) n
@@ -56,9 +56,9 @@ First, the access token $\mathsf{tok}$ acquired by $\mathsf{login}$ is unlabeled
 \begin{figure}
 \centering
 \begin{lstlisting}
-(*@$\lambda^{\mathsf{alice}}_{\botinfoflow}$@*) _ . do assume bob (*@$\actsfor$@*) alice @ (*@$\integ{\mathsf{alice}}$@*)
-              (*@$\lambda^{\mathsf{bob}}_{\botinfoflow}$@*) _ . do tok <- login bob "password"
-                           transfer tok alice bob 50
+(*@$\lambda^{\mathsf{alice}}_{\bot}$@*) _ . do assume bob (*@$\actsfor$@*) alice @ (*@$\integ{\mathsf{alice}}$@*)
+              ((*@$\lambda^{\mathsf{bob}}_{\bot}$@*) _ . do tok <- login bob "password"
+                           transfer tok alice bob 50) ()
 \end{lstlisting}
 \caption{Alice grants Bob access to perform transfers on her behalf.}
 \label{fig:bob-transfer-from-alice}
