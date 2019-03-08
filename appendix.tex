@@ -21,9 +21,9 @@
     \and
     \inferrule[E-Unlabel]{\flowstoquery{n; \env}{\env_n.\lblkw \join p}{\conf{n}}{\level} \\\\ \nopostflowstoquery{n; \env}{\env_n.\lblkw \join p \join \level}{\conf{n}} \\\\ \sigma = \extend{\env_n}{\lblkw}{\env_n.\lblkw \join p \join \level}}{\step{n; \env}{\config{\store}{\efill{\unlabel{(\lb{p}{\expr})}}}}{ \config{\store}{\efill{\return{\expr}}}}{\sigma}}
     \and
-    \inferrule[E-ToLabeled-1]{q = \env_n.\lblkw \and \expr' = \resetTolabeled{q}{p}{\expr}}{\step{n; \env}{\config{\store}{\efill{\tolabeled{p}{\expr}}}}{ \config{\store}{\efill{\expr'}}}{\env_n}}
+    \inferrule[E-ToLabeled-1]{q = \env_n.\lblkw \and \expr' = \internalTolabeled{q}{p}{\expr}}{\step{n; \env}{\config{\store}{\efill{\tolabeled{p}{\expr}}}}{ \config{\store}{\efill{\expr'}}}{\env_n}}
     \and
-    \inferrule[E-ToLabeled-2]{\sigma = \extend{\env_n}{\lblkw}{p}}{\step{n; \env}{\config{\store}{\efill{\resetTolabeled{p}{q}{\val}}}}{ \config{\store}{\efill{\Label{q}{\val}}}}{\sigma}}
+    \inferrule[E-ToLabeled-2]{\sigma = \extend{\env_n}{\lblkw}{p}}{\step{n; \env}{\config{\store}{\efill{\internalTolabeled{p}{q}{\val}}}}{ \config{\store}{\efill{\Label{q}{\val}}}}{\sigma}}
     \and
     \inferrule[E-Acts-For-True]{\actsforquery{n; \env}{p}{q}{\level} \and \nopostflowstoquery{n; \env}{\env_n.\lblkw \join \level}{\conf{n}} \\\\ \sigma = \extend{\env_n}{\lblkw}{\env_n.\lblkw \join \level}}{\step{n; \env}{\config{\store}{\efill{p \actsfor q}}}{\config{\store}{\efill{\return{\true}}}}{\sigma}}
     \and
