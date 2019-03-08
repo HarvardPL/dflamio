@@ -61,17 +61,17 @@ For most cases this judgment recursively inspects the subexpressions of each exp
 \begin{figure}
     \centering
     \begin{mathpar}
-    \inferrule[Eq-High]{\nopostnotflowstoquery{n; \env^i}{\env^i_n.\lblkw}{\Attacker}\\\\ i = 1,2}{\loweq{C}{\Attacker}[\bijection]{\expr_1}{\expr_2}}
+    \inferrule[Eq-High]{\nopostnotflowstoquery{C_i}{\env^i_n.\lblkw}{\Attacker}, i = 1,2}{\loweq{C}{\Attacker}[\bijection]{\expr_1}{\expr_2}}
     \and
-    \inferrule[Eq-Low]{\nopostflowstoquery{n; \env^i}{\env^i_n.\lblkw}{\Attacker}\\\\ i = 1,2 \and \loweql{C}{\Attacker}[\bijection]{\expr_1}{\expr_2}}{\loweq{C}{\Attacker}{\expr_1}{\expr_2}}
+    \inferrule[Eq-Low]{\nopostflowstoquery{C_i}{\env^i_n.\lblkw}{\Attacker}, i = 1,2 \\\\ \loweql{C}{\Attacker}[\bijection]{\expr_1}{\expr_2}}{\loweq{C}{\Attacker}{\expr_1}{\expr_2}}
     \and
     \inferrule[Eq-Addr]{\bijection(\addr_1) = \addr_2}{\loweql{C}{\Attacker}[\bijection]{\addr_1}{\addr_2}}
     \and
-    \inferrule[Eq-Labeled-1]{\nopostnotflowstoquery{n; \env^i}{p_i}{\Attacker}\quad i = 1,2}{\loweql{C}{\Attacker}[\bijection]{\lb{p_1}{\expr_1}}{\lb{p_2}{\expr_2}}}
+    \inferrule[Eq-Labeled-1]{\nopostnotflowstoquery{C_i}{p_i}{\Attacker}\quad i = 1,2}{\loweql{C}{\Attacker}[\bijection]{\lb{p_1}{\expr_1}}{\lb{p_2}{\expr_2}}}
     \and
-    \inferrule[Eq-Labeled-2]{\nopostflowstoquery{n; \env^i}{q}{\Attacker} \quad i = 1,2 \and \loweql{C}{\Attacker}[\bijection]{\expr_1}{\expr_2}}{\loweql{C}{\Attacker}[\bijection]{\lb{q}{\expr_1}}{\lb{q}{\expr_2}}}
+    \inferrule[Eq-Labeled-2]{\nopostflowstoquery{C_i}{q}{\Attacker} \quad i = 1,2 \and \loweql{n; \env^1; \env^2}{\Attacker}[\bijection]{\expr_1}{\expr_2}}{\loweql{C}{\Attacker}[\bijection]{\lb{q}{\expr_1}}{\lb{q}{\expr_2}}}
     \end{mathpar}
-    \caption{$\Attacker$-equivalence for terms and expressions. The meta-variable $C$ abbreviates $n; \env^1; \env^2$.}
+    \caption{$\Attacker$-equivalence for terms and expressions. The meta-variable $C$ abbreviates $n; \env^1; \env^2$, and $C_i = n; \env^i$.}
     \label{fig:low-eq-expr}
 \end{figure}
 
@@ -86,13 +86,13 @@ To simplify the statement of our end-to-end security guarantee note that, for an
     \begin{mathpar}
     \inferrule[Store-Eq-Empty]{~}{\loweq{C}{\Attacker}[\bijection]{\varnothing}{\varnothing}}
     \and
-    \inferrule[Store-Eq-Low]{\bijection(\addr_1) = \addr_2 \and \loweq{C}{\Attacker}[\bijection]{\expr_1}{\expr_2} \\\\ \nopostflowstoquery{n; \env^i}{q}{\Attacker}\quad i = 1,2 \\\\ \loweq{C}{\Attacker}[\bijection]{\store_1}{\store_2} \\\\ \store_i' = \extend{\store_i}{\addr_i}{(\lb{q}{\expr_i})}}{\loweq{C}{\Attacker}[\bijection]{\store_1'}{\store_2'}}
+    \inferrule[Store-Eq-Low]{\bijection(\addr_1) = \addr_2 \and \loweq{C}{\Attacker}[\bijection]{\expr_1}{\expr_2} \\\\ \nopostflowstoquery{C_i}{q}{\Attacker}\quad i = 1,2 \\\\ \loweq{C}{\Attacker}[\bijection]{\store_1}{\store_2} \\\\ \store_i' = \extend{\store_i}{\addr_i}{(\lb{q}{\expr_i})}}{\loweq{C}{\Attacker}[\bijection]{\store_1'}{\store_2'}}
     \and
-    \inferrule[Store-Eq-High-1]{\nopostnotflowstoquery{n; \env^1}{q}{\Attacker} \\\\ \loweq{C}{\Attacker}[\bijection]{\store_1}{\store_2}}{\loweq{C}{\Attacker}[\bijection]{\extend{\store_1}{\addr}{\lb{q}{\expr}}}{\store_2}}
+    \inferrule[Store-Eq-High-1]{\nopostnotflowstoquery{C_1}{q}{\Attacker} \\\\ \loweq{C}{\Attacker}[\bijection]{\store_1}{\store_2}}{\loweq{C}{\Attacker}[\bijection]{\extend{\store_1}{\addr}{\lb{q}{\expr}}}{\store_2}}
     \and
-    \inferrule[Store-Eq-High-2]{\nopostnotflowstoquery{n; \env^2}{q}{\Attacker} \\\\ \loweq{C}{\Attacker}[\bijection]{\store_1}{\store_2}}{\loweq{C}{\Attacker}[\bijection]{\store_1}{\extend{\store_2}{\addr}{\lb{q}{\expr}}}}
+    \inferrule[Store-Eq-High-2]{\nopostnotflowstoquery{C_2}{q}{\Attacker} \\\\ \loweq{C}{\Attacker}[\bijection]{\store_1}{\store_2}}{\loweq{C}{\Attacker}[\bijection]{\store_1}{\extend{\store_2}{\addr}{\lb{q}{\expr}}}}
     \end{mathpar}
-    \caption{$\Attacker$-equivalence for stores. The meta-variable $C$ abbreviates $n; \env^1; \env^2$.}
+    \caption{$\Attacker$-equivalence for stores. The meta-variable $C$ abbreviates $n; \env^1; \env^2$, and $C_i = n; \env^i$.}
     \label{fig:low-eq-memories}
 \end{figure}
 
