@@ -16,7 +16,7 @@ Using this implementation, we have constructed three use cases for \lang{} consi
 In addition to the banking example, we construct a secure social jukebox service where people schedule music during social gatherings. Finally, the third use case is a secure database containing confidential information about government agencies. The example also demonstrates how infinite derivation trees in authorization queries can show up in practical use cases, and how the \ruleref{Hyp} rule ensures termination for such queries.
 
 \subsection{A secure social jukebox service}\label{subsec:jukebox}
-We now consider a secure version of a social jukebox service. A group of principals $\Nameset$ is gathered at a party and want to vote on which songs should be played at the party. Furthermore, the principals do not want their votes leaked to the other principals. We assume a distinguished principal $J \in \Nameset$ (for jukebox) representing a node on which two functions exist:
+We now consider a secure version of a social jukebox service. A group of principals $\Nameset$ is gathered at a party and want to vote on which songs should be played at the party, but do not want their votes leaked to the other principals. They do, however, want to see for themselves that the song with the most votes is the one being played. We assume a distinguished principal $J \in \Nameset$ (for jukebox) representing a node on which two functions exist:
 \begin{align*}
 \mathtt{get}&: \liotype{(\pair{\String}{\listtype{\pair{\String}{\listtype{\llabeltype}}}})}\\
 \mathtt{put}&: (\pair{\String}{\listtype{\pair{\String}{\listtype{\llabeltype}}}}) \to \liotype{\unit}
