@@ -12,7 +12,7 @@
 \usepackage{subcaption}
 \usepackage{listings}
 \usepackage{zi4}
-\usepackage{microtype}
+%\usepackage{microtype}
 \usepackage{mdframed}
 \usepackage{minted}
 \usepackage{amsmath,amssymb,amsfonts}
@@ -24,9 +24,12 @@
 \usepackage{empheq}
 \usepackage{stmaryrd}
 \usepackage{suffix}
+\usepackage{float}
+\usepackage{dblfloatfix}
 \usepackage{capt-of}
 \usepackage[style=ieee, doi=false,isbn=false,url=false]{biblatex}
 \setlength\bibitemsep{0.6\baselineskip}
+\DeclareFieldFormat{pages}{}
 \DeclareFieldFormat[book,inbook,article,incollection,inproceedings]{series}{#1}
 \DeclareFieldFormat[book,inbook,article,incollection,inproceedings]{title}{#1}
 \input{macros.tex}
@@ -134,10 +137,6 @@
 \input{Sections/acknowledgements.tex}
 
 \printbibliography
-
-\vspace{12pt}
-
-\appendix
 \input{appendix.tex}
 
 \end{document}
