@@ -47,10 +47,12 @@ To define noninterference, we require that nodes agree on which principals flow 
 We call a release event $\event = (\mathsf{release}(p, q, r), \env, n)$ good, written $\good{\Attacker}{\event}$, if $\nopostflowstoquery{n; \env}{r}{\Attacker}$ implies $\nopostflowstoquery{n; \env}{p}{\Attacker} \iff \nopostflowstoquery{n; \env}{q}{\Attacker}$. Intuitively, this means that any expression of the form $\adddelegate{p}{q}{r}$ such that $r$ flows to $\Attacker$ should not modify what the attacker can observe. An illustration capturing when a flow is not good is shown in Figure~\ref{fig:bad-release}. We extend the notion of good to traces and say a trace is good, written $\good{\Attacker}{t}$ if all release events in $t$ are good release events. Our noninterference result, presented at the end of this section, will quantify only over good traces, and we leave the problem of extending this result to more relaxed notions of noninterference as future work.
 
 \begin{figure}
-    \centering
-    \includegraphics[scale=0.20]{Illustrations/bad-flow.pdf}
-    \caption{Information labeled with principal $q$, which previously could not be relabeled as $\Attacker$, can now be relabeled as $p$. This information can, in turn, now be relabeled as $\Attacker$.}
-    \label{fig:bad-release}
+\begin{minipage}{0.25\textwidth}
+\includegraphics[scale=0.20]{Illustrations/bad-flow.pdf}
+\end{minipage}%
+\begin{minipage}{0.22\textwidth}
+\caption{Information labeled as $q$, which previously could not be relabeled as $\Attacker$, can now be relabeled as $p$. This can, in turn, now be relabeled as $\Attacker$}\label{fig:bad-release}
+\end{minipage}
 \end{figure}
 
 \paragraph{$\Attacker$-equivalence}

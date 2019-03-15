@@ -104,6 +104,8 @@
 \newcommand{\efill}[1]{\ectx\lbrack #1 \rbrack}
 \newcommand{\hd}{\mathsf{hd}}
 \newcommand{\tl}{\mathsf{tl}}
+\newcommand{\cur}{\level_{\mathsf{cur}}}
+\newcommand{\clr}{\level_{\mathsf{clr}}}
 
 \newcommand{\config}[2]{\langle #1 \mid #2 \rangle}
 \NewDocumentCommand{\step}{ m O{} O{} m m m }{#1 \vdash #4 \stepsto[#2][#3] #5 : #6}
@@ -111,6 +113,7 @@
 \newcommand{\lblkw}{\mathsf{lbl}}
 \newcommand{\flowstoquery}[4]{#1 \vdash #2 \flowsto #3 : #4}
 \newcommand{\flowsto}{\sqsubseteq}
+\newcommand{\nflowsto}{\not\flowsto}
 \newcommand{\level}{\ell}
 \newcommand{\extend}[3]{#1 \lbrack #2 \mapsto #3 \rbrack}
 \newcommand{\join}{\sqcup}
@@ -141,7 +144,7 @@
 \newcommand{\tenv}{\Gamma}
 \newcommand{\wf}[2]{#1 \vdash #2}
 \newcommand{\botinfoflow}{\bot^{\!\!\scalebox{0.5}[0.5]{$\flowsto$}}}
-\newcommand{\topinfoflow}{\top^{\raisebox{-.9pt}{\!\!\scalebox{0.5}[0.5]{$\flowsto$}}}}
+\newcommand{\topinfoflow}{\top_{\!\!\scalebox{0.5}[0.5]{$\flowsto$}}}
 
 \newcommand{\event}{\mathit{ev}}
 \newcommand{\good}[2]{#1 \vdash \mathsf{good}(#2)}
@@ -152,6 +155,7 @@
 \NewDocumentCommand{\loweq}{ m m O{} m m }{#1 \vdash #4 \simeq_{#2}^{#3} #5}
 \NewDocumentCommand{\loweql}{ m m O{} m m }{#1 \vdash_{L} #4 \simeq_{#2}^{#3} #5}
 \newcommand{\emptyenv}{\varnothing}
+\newcommand{\nodelegations}{\nil}
 \newcommand{\bijection}{\theta}
 \newcommand{\partialto}{\rightharpoonup}
 
