@@ -31,7 +31,7 @@ In \lang{}, nodes can forward trust checks to other nodes that might have local 
 A node $n$ can forward trust checking to a node $m$ only if $n$'s current label flows to $\conf{m}$ (i.e., the clearance of $m$). This restriction ensures that $m$ is allowed to learn about the information that caused $n$ to initiate the query.  The following snippet demonstrates how a leak can be constructed without the check:
 \begin{lstlisting}
 (*@$\lambda^{\mathsf{alice}}_{\conf{\mathsf{alice}}}$@*) _ . do h <- unlabel aliceSecret
-              if h then (*@$p \actsfor q$@*) else return 0
+               if h then (*@$p \actsfor q$@*) else return 0
 \end{lstlisting}
 If $\mathsf{aliceSecret}$ is labeled with $\conf{\mathsf{Alice}}$, the unlabel operation will raise the current label $\level_{\mathsf{cur}}$ to $\level_{\mathsf{cur}} \join \conf{\mathsf{Alice}}$ tracking the fact that control flow depends on information at level at most $\level_{\mathsf{cur}} \join \conf{\mathsf{Alice}}$. Upon forwarding the query $p \actsfor q$ to another node $m$, Alice reveals that $\mathsf{aliceSecret}$ contained a non-zero value. Checking that Alice's current label flows to $\conf{m}$ ensures that $m$ is allowed to learn this information.
 
