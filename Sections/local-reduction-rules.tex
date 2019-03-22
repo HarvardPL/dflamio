@@ -1,4 +1,4 @@
-\begin{figure}[h!]
+\begin{figure}
 \centering
 \begin{mathpar}
     \inferrule[E-Lift-Pure]{\steppure{\expr}{\expr'}}{\step{n; \env}{\config{\store}{\efill{\expr}}}{\config{\store}{\efill{\expr'}}}{\env_n}}
@@ -19,8 +19,8 @@
 \end{mathpar}
 \end{figure}
 
-\begin{figure}[b!]
-    \centering
+\begin{figure}
+\centering
 \begin{mathpar}
     \inferrule[E-Label]{\flowstoquery{n; \env}{\env_n.\lblkw}{p \flowsto \conf{n}}{\level} \\\\ \nopostflowstoquery{n; \env}{\env_n.\lblkw \join \level}{\conf{n}} \and \sigma = \extend{\env_n}{\env_n.\lblkw}{\env_n.\lblkw \join \level}}{\step{n; \env}{\config{\store}{\efill{\Label{p}{\expr}}}}{ \config{\store}{\efill{\return{(\lb{p}{\expr})}}}}{\sigma}}
     \and
