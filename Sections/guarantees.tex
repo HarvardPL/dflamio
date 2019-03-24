@@ -1,28 +1,18 @@
 In this section, we define the attacker model and show the security guarantees given by \lang. Specifically, we show that \lang{} executions satisfy termination-insensitive noninterference (TINI) \cite{4223226}. Formally, an attacker is some principal $\Attacker$. Note that this principal might be a conjunction of named principals $n_1 \wedge \dots \wedge n_k$ representing a set of $k$ colluding principals. In the sections that follow we denote a $\Nameset$-indexed set of stores as a function $\globalstore: \Nameset \to (\Loc \partialto \val)$.
 
 \subsection{Trace semantics}
-We express the attacker model in terms of a trace semantics, in which certain operations in the language emit \emph{events} which may or may not be observable by $\Attacker$. The grammar for events is given in Figure~\ref{fig:event-syntax}. These events should be self-explanatory, except for $\mathsf{release}$ events, which we explain later in this section. A non-empty event $\event$ contains the type of the event, the current environment when the event was emitted, and the node that emitted the event. An attacker observes modifications to memory (i.e., writes or allocations) locally on a node and remote procedure calls and returns across nodes.
+We express the attacker model in terms of a trace semantics, in which certain operations in the language emit \emph{events} which may or may not be observable by $\Attacker$. The grammar for events is given in Figure~\ref{fig:event-syntax}. A non-empty event $(\alpha, \env, n)$ contains the type of the event $\alpha$, the current environment when the event was emitted $\env$, and the node $n$ that emitted the event. The type of events are write events $\writeevent{\addr}{\expr}$ emitted when a node $n$ writes an expression $\expr$ to reference $\addr$, allocation events $\newevent{\addr}{\expr}$ when a new reference $\addr$ is allocated and initialized to $\expr$, call events $\callevent{\expr}{m}$ when a node $n$ evaluates expression $\expr$ on node $m$, a return events $\returnevent{\val}{m}$ when the value $\val$ is returned to node $m$. We delay the explanation of $\releaseeventkw$ until Section~\ref{sec:release-events}. Finally, the remaining operations simply emit the empty event $\noevent$.
+%An attacker observes modifications to memory (i.e., writes or allocations) locally on a node and remote procedure calls and returns across nodes.
 
 \begin{figure}
 \centering
 \begin{align*}
-\event &::= (\alpha, \env, n) \mid \varepsilon\\
-\alpha &::= \mathsf{write}(\addr, \expr) \mid \mathsf{new}(\addr, \expr) \mid \mathsf{call}(\expr, n) \\ &\quad \mid \mathsf{ret}(\val, n) \mid \mathsf{stop}(\val, n) \mid \mathsf{release}(p, q, r)
+\event &\vcentcolon\vcentcolon= (\alpha, \env, n) \mid \noevent\\
+\alpha &\vcentcolon\vcentcolon= \writeevent{\addr}{\expr} \mid \newevent{\addr}{\expr} \mid \callevent{\expr}{n} \\ &\quad \mid \returnevent{\val}{n} \mid \releaseevent{p}{q}{r}
 \end{align*}
 \caption{The syntax of events.}
 \label{fig:event-syntax}
 \end{figure}
-
-We call a sequence of events a \emph{trace}. We write the concatenation of traces as $t_1 \cdot t_2$ and we write the empty trace as $\varepsilon$. Given a trace $t$ the observable trace of $t$ is the trace $t \upharpoonright \Attacker$, defined as
-\begin{align*}
-\varepsilon \upharpoonright \Attacker &= \varepsilon\\
-((\alpha, \env, n) \cdot t) \upharpoonright \Attacker &=
-\begin{cases}
-(\alpha, \env, n) \cdot (t \upharpoonright \Attacker) & \nopostflowstoquery{n; \env}{\env_n.\lblkw}{\Attacker} \\
-t \upharpoonright \Attacker & \text{otherwise}
-\end{cases}
-\end{align*}
-We augment the semantics from Section~\ref{sec:calculus} with events. Figure~\ref{fig:event-semantics} shows an excerpt of the augmented semantics (we use $[\ldots]$ to elide the premises presented in Section~\ref{sec:calculus}). Except for the emitted event these rules correspond exactly to the rules in Figure~\ref{fig:monadic-reductions} and Figure~\ref{fig:global-steps}. We write $\gconfig{n}{\env}{S} \gstepstos[][t]$ when there exists a configuration $\gconfig{n'}{\env'}{S'}$ such that $\gconfig{n}{\env}{S} \gstepstos[][t] \gconfig{n'}{\env'}{S'}$ and $\termsym(S'_n)$ for all $n$. We also write $\gconfig{n}{\env}{S} \gstepstos[][\Attacker \filtertrace t']$ when $\gconfig{n}{\env}{S} \gstepstos[][t]$ and $t' = \Attacker \upharpoonright t$.
 
 \begin{figure}
 \centering
@@ -41,10 +31,12 @@ We augment the semantics from Section~\ref{sec:calculus} with events. Figure~\re
 \end{figure}
 
 \paragraph{Release events}\label{sec:release-events}
-To define noninterference, we require that nodes agree on which principals flow to $\Attacker$. That is, it must \emph{not} be the case that $\mathsf{Alice}$ considers data to not be observable by $\Attacker$, and then send it to $\mathsf{Bob}$, who considers the same data to be observable by $\Attacker$. Relaxations of such limitations, like robust declassification \cite{Zdancewic:2001:RD:872752.873524, Myers:2004:ERD:1009380.1009673} and nonmalleable information-flow \cite{Cecchetti:2017:NIF:3133956.3134054}, is orthogonal to this work and we consider only the case where nodes agree on which principals flow to $\Attacker$ in the information-flow lattice. To capture this intuition, we introduce the notion of a \emph{good} release event. Intuitively, when only good events are emitted the nodes agrees on what information flows to $\Attacker$.
+\lang{} is a very expressive language that permits downgrading, i.e., intentionally relaxing information-flow restrictions on data \cite{Myers:1999:JPM:292540.292561}. To define noninterference, we are concerned only with executions that do not downgrade information to $\Attacker$ (or, more precisely, from $p$ to $q$ where $p \nflowsto \Attacker$ and $q \flowsto \Attacker$).
+We expect generalizations of noninterference, like robust declassification \cite{Zdancewic:2001:RD:872752.873524, Myers:2004:ERD:1009380.1009673} and nonmalleable information-flow \cite{Cecchetti:2017:NIF:3133956.3134054} to hold for \lang, but in this work we consider only the case where no node downgrades information to $\Attacker$. To capture this intuition, we introduce the notion of a \emph{good} release event. Intuitively, when only good events are emitted the nodes agrees on what information flows to $\Attacker$.
+%To define noninterference, we require that nodes agree on which principals flow to $\Attacker$. That is, it must \emph{not} be the case that $\mathsf{Alice}$ considers data to not be observable by $\Attacker$, and then send it to $\mathsf{Bob}$, who considers the same data to be observable by $\Attacker$.
 
 \paragraph{Good events}
-We call a release event $\event = (\mathsf{release}(p, q, r), \env, n)$ good, written $\good{\Attacker}{\event}$, if $\nopostflowstoquery{n; \env}{r}{\Attacker}$ implies $\nopostflowstoquery{n; \env}{p}{\Attacker} \iff \nopostflowstoquery{n; \env}{q}{\Attacker}$. Intuitively, this means that any expression of the form $\adddelegate{p}{q}{r}$ such that $r$ flows to $\Attacker$ should not modify what the attacker can observe. An illustration capturing when a flow is not good is shown in Figure~\ref{fig:bad-release}. We extend the notion of good to traces and say a trace is good, written $\good{\Attacker}{t}$ if all release events in $t$ are good release events. Our noninterference result, presented at the end of this section, will quantify only over good traces, and we leave the problem of extending this result to more relaxed notions of noninterference as future work.
+We call a release event $\event = (\mathsf{release}(p, q, r), \env, n)$ good, written $\good{\Attacker}{\event}$, if $\nopostflowstoquery{n; \env}{r}{\Attacker}$ implies $\nopostflowstoquery{n; \env}{p}{\Attacker} \iff \nopostflowstoquery{n; \env}{q}{\Attacker}$. Intuitively, this means that any expression of the form $\adddelegate{p}{q}{r}$ such that $r$ flows to $\Attacker$ should not modify what the attacker can observe. An illustration capturing when a flow is not good is shown in Figure~\ref{fig:bad-release}. Our noninterference result, presented at the end of this section, will quantify only over good traces, and we leave the problem of extending this result to more relaxed notions of noninterference as future work.
 
 \begin{figure}
 \begin{minipage}{0.5\columnwidth}
@@ -56,6 +48,19 @@ We call a release event $\event = (\mathsf{release}(p, q, r), \env, n)$ good, wr
 \end{figure}
 
 \paragraph{$\Attacker$-equivalence}
+We call a sequence of events a \emph{trace}. We write the concatenation of traces as $t_1 \cdot t_2$ and we write the empty trace as $\emptytrace$.
+
+Given a trace $t$ the $\Attacker$-observable trace of $t$ is the trace $t \upharpoonright \Attacker$, defined as
+\begin{align*}
+\emptytrace \upharpoonright \Attacker &= \emptytrace\\
+((\alpha, \env, n) \cdot t) \upharpoonright \Attacker &=
+\begin{cases}
+(\alpha, \env, n) \cdot (t \upharpoonright \Attacker) & \nopostflowstoquery{n; \env}{\env_n.\lblkw}{\Attacker} \\
+t \upharpoonright \Attacker & \text{otherwise}
+\end{cases}
+\end{align*}
+We augment the semantics from Section~\ref{sec:calculus} with events. Figure~\ref{fig:event-semantics} shows an excerpt of the augmented semantics (we use $[\ldots]$ to elide the premises presented in Section~\ref{sec:calculus}). Except for the emitted event these rules correspond exactly to the rules in Figure~\ref{fig:monadic-reductions} and Figure~\ref{fig:global-steps}. We write $\gconfig{n}{\env}{S} \gstepstos[][t]$ when there exists a configuration $\gconfig{n'}{\env'}{S'}$ such that $\gconfig{n}{\env}{S} \gstepstos[][t] \gconfig{n'}{\env'}{S'}$ and $\termsym(S'_n)$ for all $n$. We also write $\gconfig{n}{\env}{S} \gstepstos[][\Attacker \filtertrace t']$ when $\gconfig{n}{\env}{S} \gstepstos[][t]$ and $t' = \Attacker \upharpoonright t$.
+
 We define an $\Attacker$-equivalence relation that makes explicit which traces and stores an attacker $\Attacker$ can distinguish. As both traces and stores contain expressions, we define an $\Attacker$-equivalence on expressions, and Figure~\ref{fig:low-eq-expr} shows an excerpt of this. Rule \ruleref{Eq-High} states that any two expressions are $\Attacker$-equivalent in an environment with a current label that does not flow to the attacker. This idea is similar to the term erasure technique \cite{SRMMlio} and subsequent presentations of the LIO attacker model \cite{Stefan:2012:ACT:2364527.2364557, 10.1007/978-3-642-40203-6_40, 10.1007/978-3-319-24858-5_13}.
 
 For most cases this judgment recursively inspects the subexpressions of each expression, but differ in a few cases: To relate dynamically allocated locations we use a partial bijection \cite{Banerjee:2002:SIF:794201.795164, Rajani2018} $\bijection: \Loc \partialto \Loc$ in \ruleref{Eq-Addr}. The most important rules are \ruleref{Eq-Labeled-1} that makes explicit the notion that an attacker cannot distinguish two terms labeled with a principal which does not flow to the attacker, and \ruleref{Eq-Labeled-2} which states that an attacker can ``look inside'' terms labeled with principals that flow to the attacker. When $\bijection$ is not important we write $\loweq{C}{\Attacker}{\expr_1}{\expr_2}$ to mean $\loweq{C}{\Attacker}[\bijection]{\expr_1}{\expr_2}$ for some bijection $\bijection$, where $C$ abbreviates $n; \env^1; \env^2$.

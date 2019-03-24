@@ -167,10 +167,22 @@
 \newcommand{\botinfoflow}{\bot^{\!\!\scalebox{0.5}[0.5]{$\flowsto$}}}
 \newcommand{\topinfoflow}{\top_{\!\!\scalebox{0.5}[0.5]{$\flowsto$}}}
 
+\newcommand{\noevent}{\varepsilon}
+\newcommand{\writeeventkw}{\mathsf{write}}
+\newcommand{\neweventkw}{\mathsf{new}}
+\newcommand{\calleventkw}{\mathsf{call}}
+\newcommand{\returneventkw}{\mathsf{ret}}
+\newcommand{\releaseeventkw}{\mathsf{release}}
+\newcommand{\writeevent}[2]{\writeeventkw(#1, #2)}
+\newcommand{\newevent}[2]{\neweventkw(#1, #2)}
+\newcommand{\callevent}[2]{\calleventkw(#1, #2)}
+\newcommand{\returnevent}[2]{\returneventkw(#1, #2)}
+\newcommand{\releaseevent}[3]{\releaseeventkw(#1, #2, #3)}
 \newcommand{\event}{\mathit{ev}}
 \newcommand{\good}[2]{#1 \vdash \mathsf{good}(#2)}
 \newcommand{\globalstore}{\Phi}
 \newcommand{\altglobalstore}{\Psi}
+\newcommand{\emptytrace}{\varepsilon}
 \newcommand{\filtertrace}{\leadsto}
 \NewDocumentCommand{\traceloweq}{m m m O{} }{#1 \simeq_{#2}^{#4} #3}
 \NewDocumentCommand{\loweq}{ m m O{} m m }{#1 \vdash #4 \simeq_{#2}^{#3} #5}

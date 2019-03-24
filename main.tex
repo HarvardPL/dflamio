@@ -31,7 +31,7 @@
 \setlength\bibitemsep{0.6\baselineskip}
 \DeclareFieldFormat{pages}{}
 \DeclareFieldFormat[book,inbook,article,incollection,inproceedings]{series}{#1}
-\DeclareFieldFormat[book,inbook,article,incollection,inproceedings]{title}{#1}
+%\DeclareFieldFormat[inproceedings]{editor}{}
 \input{macros.tex}
 
 %\linespread{0.992}
@@ -43,7 +43,7 @@
 \ifx\review\undefined
 \begin{filecontents}{techreport.bib}
 @techreport{techreport,
-     title = {{Coarse-Grained Information-Flow for Distributed Authorization}},
+     title = {{Programming with Flow-Limited Authorization: Coarser is Better (Technical Report)}},
      author = {M. Pedersen and S. Chong},
      year = {2018}
 }
