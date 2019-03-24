@@ -1,3 +1,13 @@
+\ExplSyntaxOn
+\DeclareExpandableDocumentCommand{\IfNoValueOrEmptyTF}{mmm}
+ {
+  \IfNoValueTF{#1}{#2}
+   {
+    \tl_if_empty:nTF {#1} {#2} {#3}
+   }
+ }
+\ExplSyntaxOff
+
 \newcommand{\TODO}[1]{%
 %\textcolor{red}{#1}%
 }
@@ -111,7 +121,9 @@
 \NewDocumentCommand{\step}{ m O{} O{} m m m }{#1 \vdash #4 \stepsto[#2][#3] #5 : #6}
 \newcommand{\env}{\Sigma}
 \newcommand{\lblkw}{\mathsf{lbl}}
-\newcommand{\flowstoquery}[4]{#1 \vdash #2 \flowsto #3 : #4}
+\NewDocumentCommand{\flowstoquery}{mommm}{
+#1 \IfNoValueTF{#2}{\vdash}{\vdash_{#2}} #3 \flowsto #4 \IfNoValueOrEmptyTF{#5}{}{: #5}
+}
 \newcommand{\flowsto}{\sqsubseteq}
 \newcommand{\nflowsto}{\not\flowsto}
 \newcommand{\level}{\ell}
@@ -121,9 +133,18 @@
 \newcommand{\dom}{\mathsf{dom}}
 \newcommand{\nopostflowstoquery}[3]{#1 \vdash #2 \flowsto #3}
 \newcommand{\nopostactsforquery}[3]{#1 \vdash #2 \actsfor #3}
-\newcommand{\actsforquery}[4]{#1 \vdash #2 \actsfor #3 : #4}
-\newcommand{\notactsforquery}[4]{#1 \vdash #2 \not\actsfor #3 : #4}
+\NewDocumentCommand{\actsforquery}{mommm}{
+#1 \IfNoValueTF{#2}{\vdash}{\vdash_{#2}} #3 \actsfor #4 \IfNoValueOrEmptyTF{#5}{}{: #5}
+}
+\NewDocumentCommand{\notactsforquery}{mommm}{
+#1 \IfNoValueTF{#2}{\centernot\vdash}{\centernot\vdash_{#2}} #3 \actsfor #4 \IfNoValueOrEmptyTF{#5}{}{: #5}
+}
 \newcommand{\strategy}{\mathsf{strat}}
+\NewDocumentCommand{\stratelem}{s}{
+\IfBooleanTF{#1}{\mathsf{ss}}{\mathsf{s}}
+}
+\newcommand{\option}[1]{#1^?}
+\newcommand{\none}{\circ}
 \newcommand{\voicekw}{\nabla}
 \newcommand{\voice}[1]{\voicekw(#1)}
 \newcommand{\extends}[2]{#1 \lbrack #2 \rbrack}
