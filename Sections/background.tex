@@ -16,11 +16,11 @@ Figure~\ref{fig:flam-syntax} describes the syntax of FLAM principals. The gramma
 
 \paragraph{An information-flow ordering}
 An important distinction between FLAM and other authorization models is that FLAM unifies trust and information-flow into a single concept. Specifically, FLAM defines the operations
-\begin{align*}
-p \flowsto q &\circeq \conf{q} \conj \integ{p} \actsfor \conf{p} \conj \integ{q}\\
+\begin{align}
+\label{eq:flam-flowsto-from-actsfor} p \flowsto q &\circeq \conf{q} \conj \integ{p} \actsfor \conf{p} \conj \integ{q}\\
 p \join q &\circeq \conf{(p \conj q)} \conj \integ{(p \disj q)} \\
 p \meet q &\circeq \conf{(p \disj q)} \conj \integ{(p \conj q)}
-\end{align*}
+\end{align}
 That is, $p \flowsto q$ (pronounced $p$ \emph{flows to} $q$) if $q$ acts for the confidentiality of $p$, and $p$ acts for the integrity of $q$. So if $p \flowsto q$ information labeled with principal $p$ can safely be relabeled to principal $q$, as $q$ is at least as confidential, and has no more integrity, than $p$. The \emph{join} of $p$ and $q$, written $p \join q$ is defined as the principal with the authority of both $p$'s and $q$'s confidentiality, and the authority of either $p$'s or $q$'s integrity. The \emph{meet} of $p$ and $q$, written $p \meet q$ is defined dually as the confidentiality of either $p$ or $q$, and the integrity of both $p$ and $q$.
 This forms a lattice $(\mathcal{P}, \flowsto)$ with the partial order $\flowsto$, where the bottom element $\botinfoflow \circeq \conf{\bot} \conj \integ{\top}$ represents the least confidential and most trusted principal, and the top element $\topinfoflow \circeq \conf{\top} \conj \integ{\bot}$ represents the most confidential and least trusted principal.\footnote{Once again, the elements is equivalence classes of $\mathcal{P}$ modulo the relation $\equiv$ defined as $a \equiv b \iff a \flowsto b$ and $b \flowsto a$.}
 
