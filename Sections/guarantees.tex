@@ -1,4 +1,4 @@
-In this section, we define the attacker model and show the security guarantees given by \lang. Specifically, we show that \lang{} executions satisfy termination-insensitive noninterference (TINI) \cite{4223226}. Formally, an attacker is some principal $\Attacker$. Note that this principal might be a conjunction of named principals $n_1 \wedge \dots \wedge n_k$ representing a set of $k$ colluding principals. In the sections that follow we denote a $\Nameset$-indexed set of stores as a function $\globalstore: \Nameset \to (\Loc \partialto \val)$.
+In this section, we define the attacker model and show the security guarantees given by \lang. Specifically, we show that \lang{} executions satisfy termination-insensitive noninterference (TINI) \cite{4223226}. Formally, an attacker is some principal $\Attacker$. Note that this principal might be a conjunction of named principals $n_1 \wedge \dots \wedge n_k$ representing a set of $k$ colluding principals. In the sections that follow we denote a $\Nameset$-indexed set of memories as a function $\globalstore: \Nameset \to (\Loc \partialto \val)$.
 
 \subsection{Trace semantics}
 We express the attacker model in terms of a trace semantics, in which certain operations in the language emit \emph{events} which may or may not be observable by $\Attacker$. The grammar for events is given in Figure~\ref{fig:event-syntax}. A non-empty event $(\alpha, \env, n)$ contains the type of the event $\alpha$, the current environment when the event was emitted $\env$, and the node $n$ that emitted the event. The type of events are write events $\writeevent{\addr}{\expr}$ emitted when a node $n$ writes an expression $\expr$ to reference $\addr$, allocation events $\newevent{\addr}{\expr}$ when a new reference $\addr$ is allocated and initialized to $\expr$, call events $\callevent{\expr}{m}$ when a node $n$ evaluates expression $\expr$ on node $m$, a return events $\returnevent{\val}{m}$ when the value $\val$ is returned to node $m$. We delay the explanation of $\releaseeventkw$ until Section~\ref{sec:release-events}. Finally, the remaining operations simply emit the empty event $\noevent$. We call a sequence of events a \emph{trace}. We write the concatenation of traces as $t_1 \cdot t_2$ and we write the empty trace as $\emptytrace$.
@@ -17,7 +17,7 @@ We express the attacker model in terms of a trace semantics, in which certain op
 \begin{figure}
 \centering
 \begin{mathpar}
-\inferrule[E-Write-Ev]{[\ldots] \and \event = (\mathsf{write}(\addr, \expr'), \env, n)}{\step{n; \env}[][\event]{\config{\store}{\efill{\writeref{\addr}{\expr'}}}}{ \config{\store'}{\efill{\return{()}}}}{\sigma}}
+\inferrule[E-Write-Ev]{[\ldots] \and \event = (\mathsf{write}(\addr, \expr'), \env, n)}{\step{n; \env}[][\event]{\config{\store}{\efill{\writeref{\addr}{\expr'}}}}{\config{\store'}{\efill{\return{()}}}}{\sigma}}
 \and
 \inferrule[G-Step-Ret-Ev]{S_n = \config{\store_n}{\efill{\wait{m}[\type]}} \and S_m = \config{\store_m}{\val ; \overline{\expr_m}} \\\\ \event = (\mathsf{ret}(\val, n), \env, m)}{\gconfig{m}{\env}{S} \gstepsto[][\event] \gconfig{n}{\env}{\extends{S}{n \mapsto \config{\store_n}{\efill{\val}}, m \mapsto \config{\store_m}{\overline{\expr_m}}}}}
 \and
@@ -35,24 +35,31 @@ We express the attacker model in terms of a trace semantics, in which certain op
 We expect generalizations of noninterference, like robust declassification \cite{Zdancewic:2001:RD:872752.873524, Myers:2004:ERD:1009380.1009673} and nonmalleable information-flow \cite{Cecchetti:2017:NIF:3133956.3134054} to hold for \lang, but in this work we consider only the case where no node downgrades information to $\Attacker$. To capture this intuition, we introduce the notion of a \emph{bad} release event. Intuitively, when no bad release events are emitted nothing is being downgraded to $\Attacker$.
 %To define noninterference, we require that nodes agree on which principals flow to $\Attacker$. That is, it must \emph{not} be the case that $\mathsf{Alice}$ considers data to not be observable by $\Attacker$, and then send it to $\mathsf{Bob}$, who considers the same data to be observable by $\Attacker$.
 
-\begin{figure}
-\begin{minipage}{0.6\columnwidth}
-\includegraphics[scale=0.15]{Illustrations/bad-flow.pdf}
-\end{minipage}%
-\begin{minipage}{0.4\columnwidth}
-\caption{Information labeled as $q$, which previously could not be relabeled as $\Attacker$, can now be relabeled as $p$. This can now be relabeled as $\Attacker$.}\label{fig:bad-release}
-\end{minipage}
-\end{figure}
-
+\paragraph{Bad release events}
 We call downgrading of confidentiality labels \emph{declassification}, and downgrading of integrity labels \emph{endorsement}. As \lang{} permits both declassification and endorsement using delegations, a bad event should capture both cases. We call a release event $\event$ $=$ $(\mathsf{release}(p, q, r), \env, n)$ bad, written $\bad{\Attacker}{\event}$, if $\nopostflowstoquery{n; \env}{r}{\Attacker}$ and one of the following conditions hold:
 \begin{enumerate}
-    \item \label{enum:bad-event-conf} $\nopostflowstoquery{n; \env}{\conf{p}}{\conf{\Attacker}}$ and $\nopostnotflowstoquery{n; \env}{\conf{q}}{\conf{\Attacker}}$
-    \item \label{enum:bad-event-integ} $\nopostflowstoquery{n; \env}{\integ{p}}{\integ{\Attacker}}$ and $\nopostnotflowstoquery{n; \env}{\integ{q}}{\integ{\Attacker}}$
+    \item \label{enum:bad-event-conf} $\nopostflowstoquery{n; \env}{p}{\conf{\Attacker}}$ and $\nopostnotflowstoquery{n; \env}{q}{\conf{\Attacker}}$
+    \item \label{enum:bad-event-integ} $\nopostflowstoquery{n; \env}{\integ{\Attacker}}{p}$ and $\nopostnotflowstoquery{n; \env}{\integ{\Attacker}}{q}$
 \end{enumerate}
 The condition $\nopostflowstoquery{n; \env}{r}{\Attacker}$ captures that a release event can only be bad if $\Attacker$ can observe the delegation. Condition~\ref{enum:bad-event-conf} captures bad declassifications: the new delegation gives $\Attacker$ the authority to observe values labeled as $q$ since $\Attacker$ can already observe values labeled as $p$. Similarly, condition \ref{enum:bad-event-integ} captures bad endorsements: the new delegation gives $\Attacker$ the authority to write values labeled as $q$ since $\Attacker$ can already write values labeled as $p$.
-Figure~\ref{fig:bad-release} illustrates a bad release event: if $\conf{p} \flowsto \conf{\Attacker}$, the delegation $\lb{r}{p \actsfor q}$ can be used to prove that $\conf{q} \flowsto \conf{\Attacker}$ using transitively.
+%Figure~\ref{fig:bad-release} illustrates a bad release event that declassifies information at $q$ to $\Attacker$: if $\conf{p} \flowsto \conf{\Attacker}$, the delegation $\lb{r}{p \actsfor q}$ can be used to prove that $\conf{q} \flowsto \conf{\Attacker}$ using transitively.
 
-When a release event is not bad, we say that it is \emph{good}, and we extend the definition of good release events to traces: a trace $t$ is \emph{good}, written $\good{\Attacker}{t}$, if any release event in $t$ is a good release event. Our noninterference result, presented at the end of this section, will quantify only over good traces, and we leave the problem of extending this result to more relaxed notions of noninterference as future work.
+\paragraph{Examples of bad release events}
+The release event $\event$ $=$ $(\releaseevent{\conf{\Attacker}}{\conf{\mathsf{alice}}}{\botinfoflow}, \env, n)$ generated by the local step
+\begin{equation*}
+\step{n; \env}[][\event]{\config{\store}{\adddelegate{\Attacker}{\conf{\mathsf{alice}}}{\botinfoflow}}}{\config{\store}{()}}{\sigma}
+\end{equation*}
+(i.e., a declassification from $\conf{\mathsf{alice}}$ to $\Attacker$) is bad since $\nopostflowstoquery{n; \env}{\botinfoflow}{\Attacker}$ (i.e., $\Attacker$ can observe the delegation), $\nopostflowstoquery{n; \env}{\Attacker}{\conf{\Attacker}}$ (i.e., it is a declassification to a principal that $\Attacker$ can observe), and $\nopostnotflowstoquery{n; \env}{\mathsf{alice}}{\conf{\Attacker}}$ (i.e., it is a declassification from a principal that $\Attacker$ previously could not observe).
+
+The release event $\event = (\releaseevent{\Attacker}{\integ{\mathsf{bob}}}{\botinfoflow}, \env, n)$ generated by the local step
+\begin{equation*}
+\step{n; \env}[][\event]{\config{\store}{\adddelegate{\Attacker}{\integ{\mathsf{bob}}}{\botinfoflow}}}{\config{\store}{()}}{\sigma}
+\end{equation*}
+(i.e., an endorsement from $\Attacker$ to $\integ{\mathsf{bob}}$) is bad since $\nopostflowstoquery{n; \env}{\botinfoflow}{\Attacker}$ (i.e., $\Attacker$ can observe the delegation), $\nopostflowstoquery{n; \env}{\integ{\Attacker}}{\Attacker}$ (i.e., it is an endorsement from a principal that $\Attacker$ can modify), and $\nopostnotflowstoquery{n; \env}{\integ{\Attacker}}{\mathsf{bob}}$ (i.e., it is an endorsement to a principal that $\Attacker$ previously could not modify).
+
+Finally, the release event $\event = (\releaseevent{\Attacker}{\mathsf{charlie}}{\botinfoflow}, \env, n)$ is bad as it corresponds to both a declassification and an endorsement, as both condition 1 and condition 2 holds.
+
+When a release event is not bad, we say that it is \emph{good}, and we extend the definition of good release events to traces: a trace $t$ is \emph{good}, written $\good{\Attacker}{t}$, if any release event in $t$ is a good release event. Our noninterference result, presented at the end of this section, will quantify over good traces only, and we leave the problem of extending this result to more relaxed notions of noninterference as future work.
 
 \paragraph{$\Attacker$-equivalence}
 Given a trace $t$ the $\Attacker$-observable trace of $t$ is the trace $t \upharpoonright \Attacker$, defined as
@@ -66,7 +73,7 @@ t \upharpoonright \Attacker & \text{otherwise}
 \end{align*}
 We augment the semantics from Section~\ref{sec:calculus} with events. Figure~\ref{fig:event-semantics} shows an excerpt of the augmented semantics (we use $[\ldots]$ to elide the premises presented in Section~\ref{sec:calculus}). Except for the emitted event these rules correspond exactly to the rules in Figure~\ref{fig:monadic-reductions} and Figure~\ref{fig:global-steps}. We write $\gconfig{n}{\env}{S} \gstepstos[][t]$ when there exists a configuration $\gconfig{n'}{\env'}{S'}$ such that $\gconfig{n}{\env}{S} \gstepstos[][t] \gconfig{n'}{\env'}{S'}$ and $S'_n = \config{\store_n}{\termsym}$ for all $n$. We also write $\gconfig{n}{\env}{S} \gstepstos[][\Attacker \filtertrace t']$ when $\gconfig{n}{\env}{S} \gstepstos[][t]$ and $t' = \Attacker \upharpoonright t$.
 
-We define an $\Attacker$-equivalence relation that makes explicit which traces and stores an attacker $\Attacker$ can distinguish. As both traces and stores contain expressions, we define an $\Attacker$-equivalence on expressions, and Figure~\ref{fig:low-eq-expr} shows an excerpt of this. Rule \ruleref{Eq-High} states that any two expressions are $\Attacker$-equivalent in an environment with a current label that does not flow to the attacker. This idea is similar to the term erasure technique \cite{SRMMlio} and subsequent presentations of the LIO attacker model \cite{Stefan:2012:ACT:2364527.2364557, 10.1007/978-3-642-40203-6_40, 10.1007/978-3-319-24858-5_13}.
+We define an $\Attacker$-equivalence relation that makes explicit which traces and memories an attacker $\Attacker$ can distinguish. As both traces and memories contain expressions, we define an $\Attacker$-equivalence on expressions, and Figure~\ref{fig:low-eq-expr} shows an excerpt of this. Rule \ruleref{Eq-High} states that any two expressions are $\Attacker$-equivalent in an environment with a current label that does not flow to the attacker. This idea is similar to the term erasure technique \cite{SRMMlio} and subsequent presentations of the LIO attacker model \cite{Stefan:2012:ACT:2364527.2364557, 10.1007/978-3-642-40203-6_40, 10.1007/978-3-319-24858-5_13}.
 
 For most cases this judgment recursively inspects the subexpressions of each expression, but differ in a few cases: To relate dynamically allocated locations we use a partial bijection \cite{Banerjee:2002:SIF:794201.795164, Rajani2018} $\bijection: \Loc \partialto \Loc$ in \ruleref{Eq-Addr}. The most important rules are \ruleref{Eq-Labeled-1} (that makes explicit the notion that an attacker cannot distinguish two terms labeled with a principal which does not flow to the attacker), and \ruleref{Eq-Labeled-2} (that states that an attacker can ``look inside'' terms labeled with principals that flow to the attacker). When $\bijection$ is not important we write $\loweq{n; \env_1; \env_2}{\Attacker}{\expr_1}{\expr_2}$ to mean $\loweq{n; \env_1; \env_2}{\Attacker}[\bijection]{\expr_1}{\expr_2}$ for some bijection $\bijection$.
 
@@ -89,7 +96,7 @@ For most cases this judgment recursively inspects the subexpressions of each exp
 
 The $\Attacker$-equivalence relation on expressions induces an $\Attacker$-equivalence relation on events, and $\Attacker$-equivalence of traces are defined as pairwise $\Attacker$-equivalence of the events in the trace. We write $t_1 \simeq_{\Attacker}^{\bijection} t_2$ for the $\Attacker$-equivalence relation on traces, and $t_1 \simeq_{\Attacker} t_2$ to mean $t_1 \simeq_{\Attacker}^{\bijection} t_2$ for some bijection $\bijection$.
 
-Finally, Figure~\ref{fig:low-eq-memories} shows $\Attacker$-equivalence on stores. Rule \ruleref{Store-Eq-Empty} states that two empty stores are $\Attacker$-equivalent, and rule \ruleref{Store-Eq-Low} states that extending two stores with $\Attacker$-equivalent expressions preserves $\Attacker$-equivalence. Lastly, rules \ruleref{Store-Eq-High-1} and \ruleref{Store-Eq-High-2} states that both stores can be extended with terms labeled with a principal that does not flow to $\Attacker$ without the attacker being able to distinguish the stores. We extend the notion of $\Attacker$-equivalence on stores to $\Nameset$-indexed sets of stores and write $\loweq{m; \env_1; \env_2}{\Attacker}[\bijection]{\globalstore}{\altglobalstore}$ when $\forall n \in \Nameset.~\loweq{m; \env_1; \env_2}{\Attacker}[\bijection]{\globalstore(n)}{\altglobalstore(n)}$.
+Finally, Figure~\ref{fig:low-eq-memories} shows $\Attacker$-equivalence on memories. Rule \ruleref{Store-Eq-Empty} states that two empty memories are $\Attacker$-equivalent, and rule \ruleref{Store-Eq-Low} states that extending two memories with $\Attacker$-equivalent expressions preserves $\Attacker$-equivalence. Lastly, rules \ruleref{Store-Eq-High-1} and \ruleref{Store-Eq-High-2} states that both memories can be extended with terms labeled with a principal that does not flow to $\Attacker$ without the attacker being able to distinguish the memories. We extend the notion of $\Attacker$-equivalence on memories to $\Nameset$-indexed sets of memories and write $\loweq{m; \env_1; \env_2}{\Attacker}[\bijection]{\globalstore}{\altglobalstore}$ when $\forall n \in \Nameset.~\loweq{m; \env_1; \env_2}{\Attacker}[\bijection]{\globalstore(n)}{\altglobalstore(n)}$.
 
 To simplify the statement of our end-to-end security guarantee note that, for any $n, m \in \Nameset$ we have $\loweq{n; \emptyenv; \emptyenv}{\Attacker}{\store}{\altstore}$ if and only if $\loweq{m; \emptyenv; \emptyenv}{\Attacker}{\store}{\altstore}$. Thus, we write $\store \simeq_{\Attacker} \altstore$ to mean $\loweq{n; \emptyenv; \emptyenv}{\Attacker}{\store}{\altstore}$ for some $n$.
 
@@ -104,14 +111,14 @@ To simplify the statement of our end-to-end security guarantee note that, for an
     \and
     \inferrule[Store-Eq-High-2]{\nopostnotflowstoquery{C_2}{q}{\Attacker} \\\\ \loweq{C}{\Attacker}[\bijection]{\store_1}{\store_2}}{\loweq{C}{\Attacker}[\bijection]{\store_1}{\extend{\store_2}{\addr}{\lb{q}{\expr}}}}
     \end{mathpar}
-    \caption{$\Attacker$-equivalence for stores. The meta-variable $C$ abbreviates $n; \env_1; \env_2$, and $C_i = n; \env_i$.}
+    \caption{$\Attacker$-equivalence for memories. The meta-variable $C$ abbreviates $n; \env_1; \env_2$, and $C_i = n; \env_i$.}
     \label{fig:low-eq-memories}
 \end{figure}
 
 \paragraph{Attacker knowledge}
-We present our noninterference result using the notion of attacker knowledge \cite{Askarov:2008:TNL:1462455.1462485, 4223226}. The attacker's knowledge is the set of initial stores that could lead to a given observable trace, and a larger knowledge set corresponds to more uncertainty about the initial memory. Formally, an attacker's knowledge given a trace $t$ produced by expression $\expr$ and the initial set of stores $\globalstore$ is the set
+We present our noninterference result using the notion of attacker knowledge \cite{Askarov:2008:TNL:1462455.1462485, 4223226}. The attacker knowledge is the set of initial memories that could lead to a given observable trace, and a larger knowledge set corresponds to more uncertainty about the initial memory. Formally, an attacker knowledge given a trace $t$ produced by expression $\expr$ and the initial set of memories $\globalstore$ is the set
 \begin{equation*}
-k^n_{\Attacker}(\expr, t) = \left\{ \, \altglobalstore \, \middle\vert \, \gconfig{n}{\emptyenv}{S} \gstepstos[][\Attacker \filtertrace t'] \wedge \, t \simeq_{\Attacker} t' \, \right\}
+\knowledge{n}(\expr, t) = \left\{ \, \altglobalstore \, \middle\vert \, \gconfig{n}{\emptyenv}{S} \gstepstos[][\Attacker \filtertrace t'] \wedge \, t \simeq_{\Attacker} t' \, \right\}
 \end{equation*}
 where $S(m) = \config{\altglobalstore(n)}{\llbracket \expr \rrbracket_n(m)}$ and
 \begin{equation*}
@@ -123,17 +130,16 @@ where $S(m) = \config{\altglobalstore(n)}{\llbracket \expr \rrbracket_n(m)}$ and
 \end{equation*}
 ensures that expression $\expr$ is initially evaluated on node $n$, and the remaining nodes start with an empty list of expressions.
 
-As is standard for termination-insensitive noninterference (TINI) the policy \cite{6234468} is defined as all $\Attacker$-equivalent terminating stores, which we denote by $k^n_{\Attacker}(\globalstore, \expr)$.
+As is standard for termination-insensitive noninterference (TINI) the policy \cite{6234468} is defined as all $\Attacker$-equivalent terminating memories, which we denote by $\termknowledge{n}(\globalstore, \expr)$.
 \begin{equation*}
-k^n_{\Attacker}(\globalstore, \expr) = \left\{ \,\altglobalstore \, \middle\vert \, \globalstore \simeq_{\Attacker} \altglobalstore \wedge \, \gconfig{n}{\emptyenv}{S} \gstepstos \, \right\}
+\termknowledge{n}(\globalstore, \expr) = \left\{ \,\altglobalstore \, \middle\vert \, \globalstore \simeq_{\Attacker} \altglobalstore \wedge \, \gconfig{n}{\emptyenv}{S} \gstepstos \, \right\}
 \end{equation*}
-where $S(m) = \config{\altglobalstore(n)}{\llbracket \expr \rrbracket_n(m)}$. TINI can now be stated for \lang{} as a guarantee that two traces generated by two evaluations of a well-typed expression $\expr$ starting with $\Attacker$-equivalent memories $\globalstore$ and $\altglobalstore$ are $\Attacker$-equivalent.
+where $S(m) = \config{\altglobalstore(n)}{\llbracket \expr \rrbracket_n(m)}$. TINI can now be stated for \lang{} as a guarantee that two traces, generated by two evaluations of a well-typed expression $\expr$ starting with $\Attacker$-equivalent memories $\globalstore$ and $\altglobalstore$, are $\Attacker$-equivalent. Using attacker knowledge, we can succinctly write this as the inclusion of $\termknowledge{n}(\globalstore, \expr)$ in $\knowledge{n}(\expr, t)$: all $\Attacker$-equivalent terminating memories generate $\Attacker$-observable traces.
 
 \begin{theorem}[Noninterference]\label{thm:ni}
 Let $\expr$ satisfy $\hastype{n; \tenv}{\expr}{\type}$.
-If $\gconfig{n}{\varnothing}{S} \gstepstos[][\Attacker \filtertrace t]$ for $S(m) = \config{\globalstore(m)}{\llbracket \expr \rrbracket_n(m)}$ such that $\good{\Attacker}{t}$ then $k^n_{\Attacker}(\expr, t) \supseteq k^n_{\Attacker}(\globalstore, \expr)$.
+If $\gconfig{n}{\varnothing}{S} \gstepstos[][\Attacker \filtertrace t]$ for $S(m) = \config{\globalstore(m)}{\llbracket \expr \rrbracket_n(m)}$ such that $\good{\Attacker}{t}$ then $\knowledge{n}(\expr, t) \supseteq \termknowledge{n}(\globalstore, \expr)$.
 \end{theorem}
 
-Theorem~\ref{thm:ni} is proved using a generalized version of the statement that quantifies over any two $\Attacker$-equivalent global configurations $\gconfig{n_1}{\env_1}{S_1}$, $\gconfig{n_2}{\env_2}{S_2}$ that proves they emit $\Attacker$-equivalent observable traces. An important invariant obtained by quantifying only over good traces is that whenever $\actsforquery{n; \env_1}{p}{q}{\level}$ and $\nopostflowstoquery{n; \env_1}{\level}{\Attacker}$ it holds that $\actsforquery{n; \env_2}{p}{q}{\level}$ and $\nopostflowstoquery{n; \env_2}{\level}{\Attacker}$. The technical report \cite{techreport} contains a complete proof of Theorem~\ref{thm:ni}.
-
-As seen in \ruleref{E-Get-Label} in Figure~\ref{fig:monadic-reductions}, the current label is public information. Thus, one might wonder if it is possible to raise the current label depending on information that should not flow to an attacker - perhaps by some clever trust checking that unlabels different delegations in two different (but $\Attacker$-equivalent) executions. However, as Theorem~\ref{thm:ni} shows, an attacker cannot learn any information by inspecting the current label.
+%Theorem~\ref{thm:ni} is proved using a generalized version of the statement that quantifies over any two $\Attacker$-equivalent global configurations $\gconfig{n_1}{\env_1}{S_1}$, $\gconfig{n_2}{\env_2}{S_2}$ that proves they emit $\Attacker$-equivalent observable traces. An important invariant obtained by quantifying only over good traces is that whenever $\actsforquery{n; \env_1}{p}{q}{\level}$ and $\nopostflowstoquery{n; \env_1}{\level}{\Attacker}$ it holds that $\actsforquery{n; \env_2}{p}{q}{\level}$ and $\nopostflowstoquery{n; \env_2}{\level}{\Attacker}$.
+The technical report \cite{techreport} contains a complete proof of Theorem~\ref{thm:ni}. The theorem shows that we have securely integrated FLAM into an LIO-like setting with a floating label, where proofs of trust relationships do not inappropriately reveal confidential information, nor are they inappropriately affected by untrusted information.

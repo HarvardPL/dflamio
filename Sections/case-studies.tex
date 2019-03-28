@@ -1,47 +1,49 @@
-We have implemented \lang{} as a library in Haskell \cite{flamiolib}. The code is approximately 2100 lines of code and uses the efficient query resolution algorithm for authorization queries described in \cite{Arden:2015:FA:2859845.2859998}, along with additional layers of caching to avoid repeated network communication. To simplify the implementation, we differ from the calculus in the following ways:
+We have implemented \lang{} as a monadic library in Haskell \cite{flamiolib}. The code is approximately 2100 lines of code and uses the efficient query resolution algorithm for authorization queries described in \cite{Arden:2015:FA:2859845.2859998}. The implementation of proof search for trust relationships is implemented as computations in the \lang{} monad, ensuring that delegations are not used inappropriately. The case studies demonstrate how application-specific search strategies is used to prevent label creep during proof search.
+
+Along with the efficient query resolution algorithm, additional layers of caching to avoid repeated network communication. %\TODO{Something about external timing channels being outside the scope of our work?}
+
+To simplify the implementation, we differ from the calculus in the following ways:
 \begin{enumerate}
     \item \label{enum:no-func-across-network} An RPC does not send the function that should be called across the network. Instead, the receiver of the RPC has a table mapping identifiers to functions, and the caller sends this identifier along with the list of arguments.
-    \item \label{enum:cache-network-queries} Since query results obtained via network communication is cached on a per-query basis, no two identical queries are sent to the same node.
-    \item \label{enum:del-1-rule} The \ruleref{Del-1} rule does not inspect the principals in the delegation before it unlabels them but instead unlabels all delegations whose label flow to the strategy.
+    \item \label{enum:cache-network-queries} Since query results obtained via network communication are cached on a per-query basis, no two identical queries are sent to the same node.
 \end{enumerate}
 
-First, \ref{enum:no-func-across-network}) does not lead to loss of expressivity: As shown in \cite{Cooper:2009:RC:1599410.1599439} one can translate a program written in a calculus similar to the calculus presented in Section~\ref{sec:calculus} to a program written in Haskell using the \lang{} implementation by performing defunctionalization.
+First, \ref{enum:no-func-across-network}) does not lead to loss of expressivity:  As shown in \cite{Cooper:2009:RC:1599410.1599439} one can translate a program written in a calculus similar to the calculus presented in Section~\ref{sec:calculus} to a program written in Haskell using the \lang{} implementation by performing defunctionalization.
 
 Second, \ref{enum:cache-network-queries}) reduces network communication a lot, but means that the implementation is unsound if the trust relationship between principals changes during query resolution. In practice, this is not an issue, as orthogonal work on query isolation \cite{Liu:2009:FPS:1629575.1629606} can provide transactional behavior for distributed systems like \lang.
 
-Third, \ref{enum:del-1-rule}) simplifies the implementation by not breaking the model of LIO: The only action one can perform on labeled values is unlabeling. This is different from the semantics described in Section~\ref{sec:calculus} since \ruleref{Del-1} inspects the body of delegations. By adhering to the model of LIO, the guarantees given in previous work on LIO \cite{SRMMlio} remain true. Furthermore, unlabeling more delegations makes the usage of strategies even more important, as this provides customization of query resolution specifically to a given application domain.
+Using this implementation, we have constructed three use cases for \lang{} consisting of roughly 500 lines of code. The first use case is a distributed bank, which was already presented in Section~\ref{sec:programming}. The banking example shows how users can perform remote procedure calls to handle transactions across accounts between different users. A user $u$ can authorize user $u'$ to transfer money on behalf of $u$ by adding a delegation $\lb{\conf{\mathsf{bank}} \conj \integ{u}}{u' \actsfor u}$ locally on $u$'s node. This delegation is read as ``$u$ trusts $u'$, and this information is confidential to $\mathsf{bank}$ and has the integrity of $u$''. When $\mathsf{bank}$ wish to prove the trust relationship between $u$ and $u'$ to authorize a transfer of money, a proof search is issued, and using the \ruleref{Fwd} rule, is forwarded to node $u$. Node $u$ then proves the trust relationship using the delegation $\lb{\conf{\mathsf{bank}} \conj \integ{u}}{u' \actsfor u}$ local on $u$'s node.
 
-Using this implementation, we have constructed three use cases for \lang{} consisting of roughly 500 lines of code. The first use case is a distributed bank, which was already presented in Section~\ref{sec:programming}. The banking example shows how users can perform remote procedure calls to handle transactions across accounts between different users. A user $u$ can authorize another user $u'$ to transfer money on behalf of $u$ by adding a delegation specifying that $u'$ can act on behalf of $u$ and rely on forwarding trust queries to resolve the authorization policy.
+In addition to the banking example, we construct a secure social jukebox service where people schedule music during social gatherings. Finally, the third use case is a secure database containing confidential information about government agencies. The third example also demonstrates how the \ruleref{Hyp} rule prevents infinite derivation trees in authorization queries, and how such queries can show up in practical use cases.
 
-In addition to the banking example, we construct a secure social jukebox service where people schedule music during social gatherings. Finally, the third use case is a secure database containing confidential information about government agencies. The example also demonstrates how infinite derivation trees in authorization queries can show up in practical use cases, and how the \ruleref{Hyp} rule ensures termination for such queries.
+\subsection{Secure social jukebox service}\label{subsec:jukebox}
+Suppose a group of principals $\Nameset$ is gathered at a party and want to vote on which songs should be played at the party, but do not want their votes leaked to unauthorized principals, nor do they want unauthorized principals to vote on their behalf.
+For instance, if $\mathsf{alice}$ votes for ``Taylor Swift - Shake It Off'', she wants to ensure that only principals she trusts can learn her vote for this song. Furthermore, only principals that $\mathsf{alice}$ trusts should be able to vote for a song on her behalf.
 
-\subsection{A secure social jukebox service}\label{subsec:jukebox}
-We now consider a secure version of a social jukebox service. A group of principals $\Nameset$ is gathered at a party and want to vote on which songs should be played at the party, but do not want their votes leaked to the other principals. They do, however, want to see for themselves that the song with the most votes is the one being played. We assume a distinguished principal $J \in \Nameset$ (for jukebox) representing a node on which two functions exist:
+We assume a distinguished principal $J \in \Nameset$ (for jukebox) representing a node on which two functions exist:
 \begin{align*}
-\mathtt{get}&: \liotype{(\pair{\String}{\listtype{\pair{\String}{\listtype{\llabeltype}}}})}\\
-\mathtt{put}&: (\pair{\String}{\listtype{\pair{\String}{\listtype{\llabeltype}}}}) \to \liotype{\unit}
+\mathtt{get}&: \liotype{(\pair{\String}{\listtype{\labeled{\String}}})}\\
+\mathtt{put}&: \pair{\String}{\listtype{\labeled{\String}}} \to \liotype{\unit}
 \end{align*}
-We write $\llabeltype$ for the type $\labeled{\labeltype}$. Function $\mathtt{get}$ retrieves a pair containing the current song being played, and a list of pairs containing a song and labeled principals representing who voted for this song. By labeling the votes with the label $J$ they can securely be distributed for anyone to inspect, as no principal except for $J$ can unlabel the votes. However, while each vote is a labeled value, the list itself is not labeled so everyone can see which song has the most votes. Because of this, any node is free to call $\mathtt{get}$ without inappropriately learning confidential voter information.
+Function $\mathtt{get}$ returns a pair $(\mathit{s}, \mathit{lss})$ containing the current song being played $s$, and a list of labeled strings $\mathit{lss}$ such that $\lb{p}{s'} \in \mathit{lss}$ represents that $p$ voted for $s'$. So if $\mathsf{alice}$ wants to vote for ``Taylor Swift - Shake It Off'', she appends a labeled string $\lb{\mathsf{alice}}{\texttt{"Taylor Swift - Shake It Off"}}$ using $\mathtt{put}$. By labeling her vote with the principal $\mathsf{alice}$, she knows that only principals $p$ such that $\conf{\mathsf{alice}}$ flows to $\conf{p}$ can learn her vote (i.e., by rule \ruleref{E-Unlabel} it must be the case that $\mathsf{alice}$ flows to $\conf{p}$). Furthermore, since the integrity of the label on the vote is $\integ{\mathsf{alice}}$, she knows that any vote of the form $\lb{\mathsf{alice}}{s}$ for some song $s$ must be placed by a principal $p$ such that $\integ{\mathsf{alice}}$ trusts $\integ{p}$ (i.e., by rule \ruleref{E-Label} it must be the case that $p$'s current label flows to $\mathsf{alice}$).
 
-Figure~\ref{fig:vote-for-song} implements a function $\mathtt{vote}$ that receives a song title, labeled with the identity of the voter, and updates the vote count using a function $\mathtt{insert}$ whose definition we elide. Figure~\ref{fig:jukebox-alice-votes-for-taylor-swift} shows an example of $\mathsf{Alice}$ voting for ``Shake it Off'' by Taylor Swift. First, Alice adds a delegation that allows $J$ to read Alice's labeled vote. She then labels her vote and invokes the $\mathtt{vote}$ function. When $\mathtt{vote}$ then unlabels the labeled song title, a forward query to Alice will be issued checking $\integ{J} \join \mathsf{Alice} \flowsto \conf{J}$, which is equivalent to $\conf{J} \conj \integ{(J \disj \mathsf{Alice})} \actsfor \conf{\mathsf{Alice}}$, and holds by the delegation that Alice placed in Figure~\ref{fig:jukebox-alice-votes-for-taylor-swift}. \TODO{Should we change this example to a less frivolous one to make reviewer D happy?}
+Figure~\ref{fig:vote-for-song} implements a function $\mathtt{vote}$ that receives a song title, labeled with the identity of the voter (e.g., $\mathsf{alice}$), and saves the vote using $\mathtt{put}$. Figure~\ref{fig:jukebox-alice-votes-for-taylor-swift} shows an example of $\mathsf{Alice}$ voting for ``Shake it Off'' by Taylor Swift. First, $\mathsf{Alice}$ adds a delegation that allows $J$ to read Alice's labeled vote. She then labels her vote and invokes the $\mathtt{vote}$ function. When $\mathtt{vote}$ then unlabels the labeled song title, a proof search will be issued checking $\integ{J} \join \mathsf{Alice}$ flows to $\conf{J}$, which is equivalent to checking that $\conf{\mathsf{Alice}}$ trusts $\conf{\mathsf{Alice}} \conj \integ{(J \disj \mathsf{Alice})}$. This trust relationship holds by the delegation that Alice placed in Figure~\ref{fig:jukebox-alice-votes-for-taylor-swift}.
 
 \begin{figure}
 \centering
 \begin{subfigure}{0.5\textwidth}
 \begin{lstlisting}
-vote = (*@$\lambda^{J}_{\botinfoflow}$@*) ls . let p = labelOf ls
-                  in do s <- unlabel ls
-                        (curSong, songs) <- get
-                        lp <- label (*@$J$@*) p
-                        put (curSong, insert lp s songs)
+vote = (*@$\lambda^{J}_{\integ{J}}$@*) ls . do
+  (curSong, votedSongs) <- get
+  put (curSong, ls :: votedSongs)
 \end{lstlisting}
-\caption{Implementing secure voting functionality}
+\caption{Implementing secure voting functionality.}
 \label{fig:vote-for-song}
 \end{subfigure}
 \begin{subfigure}{0.5\textwidth}
 \begin{lstlisting}
-((*@$\lambda^{\mathsf{Alice}}_{\botinfoflow}$@*) _ . do
-  assume (*@$\conf{J}$@*) (*@$\actsfor$@*) (*@$\conf{\mathsf{Alice}}$@*) @ (*@($\conf{\bot} \conj \integ{$ J$}$)@*)
+((*@$\lambda^{\mathsf{alice}}_{\integ{\mathsf{alice}}}$@*) _ . do
+  assume (*@$\conf{J}$@*) (*@$\actsfor$@*) (*@$\conf{\mathsf{Alice}}$@*) @ (*@($\conf{\bot} \conj \integ{\mathsf{alice}}$)@*)
   ls <- label (*@$\mathsf{Alice}$@*) "Taylor Swift - Shake It Off"
   vote ls) ()
 \end{lstlisting}
@@ -52,21 +54,32 @@ vote = (*@$\lambda^{J}_{\botinfoflow}$@*) ls . let p = labelOf ls
 \end{figure}
 
 \subsection{Government agency records}\label{subsec:agents}
-As a final example demonstrating the usefulness of \lang, we show how confidential delegations can be used to keep government agency records. For this example, we use a simple extension of \lang{} that allows ownership projections as nodes in the system. The example could be rewritten to delegate the ownership projections to named principals, but we omit this to simplify the presentation of the example.
+As a final example demonstrating the usefulness of \lang, we show how confidential delegations can be used to keep government agency records. Suppose a group of agents $\Nameset$ are hired as agents for the CIA. 
+This information should not be available to the general public: it should only be visible to other CIA agents. Furthermore, only CIA should be able to hire agents.
 
-Figure~\ref{fig:govt-alice-checks-bob} shows an example of a scenario where $\mathsf{Alice}$ verifies that $\mathsf{Bob}$ is also a secret agent. First, $\mathsf{Alice}$ and $\mathsf{Bob}$ are both hired as secret agents by the $\mathsf{CIA}$ by delegating the $\mathsf{CIA}$ principal to $\owner{\mathsf{CIA}}{\mathsf{Alice}}$ and $\owner{\mathsf{CIA}}{\mathsf{Bob}}$.\footnote{The use of ownership principals prevent \emph{delegation loopholes} \cite{Arden:2015:FA:2859845.2859998}.} Not everyone should know that they are secret agents, and so we put the confidentiality of this delegation to be $\mathsf{CIA}$, such that only CIA can learn the identity of other agents.
+We implement the an enforcement mechanism for this security policy as follows: First, when $\mathsf{CIA} \in \Nameset$ hires an agent $n \in \Nameset$, $\mathsf{CIA}$, two delegations are created: First, trust is delegated from $\mathsf{CIA}$ to $\owner{\mathsf{CIA}}{n}$. By the properties of ownership projections \cite{Arden:2015:FA:2859845.2859998}, this delegation can be read as ``$\mathsf{CIA}$ trusts $n$, but $\mathsf{CIA}$ controls which principals can act for $n$''.\footnote{The use of ownership principals prevent \emph{delegation loopholes} \cite{Arden:2015:FA:2859845.2859998}.}. To satisfy the security policy, this delegation should be visible only to other agents, and CIA should be able to trust that any such delegation could have been placed only by the CIA. This directly translates into the label $\conf{\owner{\mathsf{CIA}}{\mathsf{AgentDB}}} \conj \integ{\mathsf{CIA}}$ on the delegation.
 
-At some point $\mathsf{Alice}$ meets $\mathsf{Bob}$ ``in the field'' and wants to verify his claim that he is a secret agent for the $\mathsf{CIA}$. In order for $\mathsf{Alice}$ to verify this claim she checks if the principal $\mathsf{CIA}$ delegates to $\owner{\mathsf{CIA}}{\mathsf{Bob}}$. For $\mathsf{Alice}$ to prove this query she uses the \ruleref{Fwd} rule and delegates the query to the $\mathsf{CIA}$ node. The $\mathsf{CIA}$ node proves the query $\owner{\mathsf{CIA}}{\mathsf{Bob}} \actsfor \mathsf{CIA}$ using delegations up to level $\mathsf{CIA}$ in the process. So for $\mathsf{Alice}$ to use this information she must prove that $\integ{\owner{\mathsf{CIA}}{\mathsf{Alice}}} \join \mathsf{CIA} \flowsto \conf{\owner{\mathsf{CIA}}{\mathsf{Alice}}}$, which is equivalent to $\conf{\owner{\mathsf{CIA}}{\mathsf{Alice}}} \conj \integ{(\owner{\mathsf{CIA}}{\mathsf{Alice}} \disj \mathsf{CIA})} \actsfor \conf{\mathsf{CIA}}$. This can be proven using another forward query to node $\mathsf{CIA}$, and using the delegation stating that $\owner{\mathsf{CIA}}{\mathsf{Alice}} \actsfor \mathsf{CIA}$. In order to use this delegation it must hold that $\integ{\owner{\mathsf{CIA}}{\mathsf{Alice}}} \join \mathsf{CIA} \flowsto \conf{\owner{\mathsf{CIA}}{\mathsf{Alice}}}$, which we were already in the process of proving. But as we used \ruleref{Del-1} this trust relationship is an assumption, and the goal now follows using \ruleref{Hyp}.
+Second, any agent $n$ should be able to check if a given principal $m$ is an agent. To achieve this, $\conf{\owner{\mathsf{CIA}}{\mathsf{AgentDB}}}$ delegates trust to $\conf{n}$, meaning that $n$ can learn information labeled as $\owner{\mathsf{CIA}}{\mathsf{AgentDB}}$. To satisfy the security policy, this delegation should also be labeled as $\conf{\owner{\mathsf{CIA}}{\mathsf{AgentDB}}} \conj \integ{\mathsf{CIA}}$.
+
+Figure~\ref{fig:govt-alice-checks-bob} shows an example of a scenario where $\mathsf{Alice}$ verifies that $\mathsf{Bob}$ is also a secret agent. On line~4, $\mathsf{Alice}$ and $\mathsf{Bob}$ are both hired as secret agents using the function $\mathsf{hire}$ defined on lines~1-3. 
+
+At some point $\mathsf{Alice}$ meets $\mathsf{Bob}$ ``in the field'' and wants to verify his claim that he is a secret agent. In order for $\mathsf{Alice}$ to verify this claim she checks if the principal $\mathsf{CIA}$ delegates to $\owner{\mathsf{CIA}}{\mathsf{Bob}}$. Using the strategy $[\conf{\mathsf{Alice}} \conj \integ{\mathsf{CIA}}]$, Alice states that she is only interested in using delegations that has confidentiality at most $\mathsf{Alice}$, and any delegation must have been placed by a principal that $\mathsf{CIA}$ trusts.
+
+For $\mathsf{Alice}$ to prove this trust relationship she uses the \ruleref{Fwd} rule and delegates the proof search to $\mathsf{CIA}$. By \ruleref{Fwd}, she must check that $\integ{\mathsf{Alice}}$ (i.e., the current label of $\mathsf{Alice}$) flows to $\conf{\mathsf{CIA}}$ (i.e., the clearance label of $\mathsf{CIA}$), which holds by \ruleref{Bot}. Applying \ruleref{Del}, $\mathsf{CIA}$ must now check that $\conf{\owner{\mathsf{CIA}}{\mathsf{AgentDB}}}$ trusts $\conf{\mathsf{Alice}}$. Applying \ruleref{Del} again, this reduces to showing that $\conf{\owner{\mathsf{CIA}}{\mathsf{AgentDB}}}$ trusts $\conf{\mathsf{Alice}}$ under the assumption that $\conf{\owner{\mathsf{CIA}}{\mathsf{AgentDB}}}$ trusts $\conf{\mathsf{Alice}}$, and so the trust relationship is established using \ruleref{Hyp}.
+
+Notice that without the \ruleref{Hyp} rule, we would not be able to prove that $\conf{\owner{\mathsf{CIA}}{\mathsf{AgentDB}}}$ trusts $\conf{\mathsf{Alice}}$ (or, equivalently, that $\owner{\mathsf{CIA}}{\mathsf{AgentDB}}$ can learn information labeled as $\mathsf{Alice}$): we would keep applying \ruleref{Hyp} without a way of terminating the derivation. But, intuitively, this relationship should hold as we have a delegation of trust from $\conf{\owner{\mathsf{CIA}}{\mathsf{AgentDB}}}$ to $\conf{\mathsf{Alice}}$. However, to use the delegation to prove the trust, the trust needs to hold already in order to prove that the label on the delegation flows to the current strategy element. Adding the \ruleref{Hyp} rule allows the proof search to use the delegation when proving that it is secure to use the delegation, effectively expressing that ``it is secure to use the delegation because the delegation says so''.
 
 \begin{figure}
 \centering
 \begin{lstlisting}
-(*@$\lambda^{\mathsf{CIA}}_{\botinfoflow}$@*) _ . assume CIA:Alice CIA CIA
-          assume CIA:Bob CIA CIA
+let hire = (*@$\lambda^{\mathsf{CIA}}_{\integ{\mathsf{CIA}}}$@*) (*@$\mathsf{n}$@*) . do
+  assume (*@$\owner{\mathsf{CIA}}{\mathsf{n}}$@*) (*@$\actsfor$@*) (*@$\mathsf{CIA}$@*) @ (*@$\conf{\owner{\mathsf{CIA}}{\mathsf{AgentDB}}} \conj \integ{\mathsf{CIA}}$@*)
+  assume (*@$\conf{\mathsf{n}}$@*) (*@$\actsfor$@*) (*@$\conf{\owner{\mathsf{CIA}}{\mathsf{AgentDB}}}$@*) @ (*@$\conf{\owner{\mathsf{CIA}}{\mathsf{AgentDB}}} \conj \integ{\mathsf{CIA}}$@*)
+in ((*@$\lambda^{\mathsf{CIA}}_{\integ{\mathsf{CIA}}}$@*) _ . do hire (*@$\mathsf{Alice}$@*); hire (*@$\mathsf{Bob}$@*)) ()
 [...]
-(*@$\lambda^{\owner{\mathsf{CIA}\,}{\,\mathsf{Alice}}}_{\botinfoflow}$@*) _ . withStrategy [CIA] (do
+((*@$\lambda^{\mathsf{Alice}}_{\integ{\mathsf{Alice}}}$@*) _ . withStrategy [(*@$\conf{\mathsf{Alice}} \conj \integ{\mathsf{CIA}}$@*)] (do
                isAgent <- CIA:Bob (*@$\actsfor$@*) CIA
-               if isAgent then [...] else [...])
+               if isAgent then [...] else [...])) ()
 \end{lstlisting}
 \caption{$\mathsf{Alice}$ verifies that $\mathsf{Bob}$ is a secret agent for the $\mathsf{CIA}$.}
 \label{fig:govt-alice-checks-bob}

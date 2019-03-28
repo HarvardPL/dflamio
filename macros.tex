@@ -9,7 +9,7 @@
 \ExplSyntaxOff
 
 \newcommand{\TODO}[1]{%
-%\textcolor{red}{#1}%
+\textcolor{red}{#1}%
 }
 \newcommand{\BRAINDUMP}[1]{\textcolor{blue}{#1}}
 \newcommand{\lang}{Flamio}
@@ -192,6 +192,8 @@
 \newcommand{\nodelegations}{\nil}
 \newcommand{\bijection}{\theta}
 \newcommand{\partialto}{\rightharpoonup}
+\NewDocumentCommand{\termknowledge}{mO{\Attacker}}{k^{\downarrow#1}_{#2}}
+\NewDocumentCommand{\knowledge}{mO{\Attacker}}{k^{#1}_{#2}}
 
 \definecolor{bluekeywords}{rgb}{0.13, 0.13, 1}
 \definecolor{greencomments}{rgb}{0, 0.5, 0}
