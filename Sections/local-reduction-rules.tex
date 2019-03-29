@@ -5,45 +5,49 @@
     \and
     \inferrule[E-Ctx]{\step{n; \env}{\config{\store}{\expr}}{\config{\store'}{\expr'}}{\sigma}}{\step{n; \env}{\config{\store}{\efill{\expr}}}{\config{\store'}{\efill{\expr'}}}{\sigma}}
     \and
-    \inferrule[E-Get-Label]{\level = \env(n).\lblkw}{\step{n; \env}{\config{\store}{\efill{\getlabel}}}{\config{\store}{\efill{\return{\level}}}}{\env(n)}}
+    \inferrule[E-Get-Label]{\level = \env(n).\lblkw}{\step{n; \env}{\config{\store}{\getlabel}}{\config{\store}{\return{\level}}}{\env(n)}}
     \and
-    \inferrule[E-Get-Clearance]{}{\step{n; \env}{\config{\store}{\efill{\getclearance}}}{ \config{\store}{\efill{\return{\conf{n}}}}}{\env(n)}}
+    \inferrule[E-Get-Clearance]{}{\step{n; \env}{\config{\store}{\getclearance}}{ \config{\store}{\return{\conf{n}}}}{\env(n)}}
     \and
-    \inferrule[E-App]{\flowstoquery{n; \env}{\env(n).\lblkw \flowsto p}{\conf{n}}{\level} \\\\ \expr' = \bind{\expr_1[\expr_2 / x]}{\abs{n}{\type}{x}{\lb{p}{x}}} \\\\ \nopostflowstoquery{n; \env}{\env(n).\lblkw \join \level}{\conf{n}} \\\\ \sigma = \extend{\env(n)}{\lblkw}{\env(n).\lblkw \join \level}}{\step{n; \env}{\config{\store}{\efill{\app{(\abs{n}{\lb{p}{\type}}{x}{\expr_1})}{\expr_2}}}}{\config{\store}{\efill{\expr'}}}{\sigma}}
+    \inferrule[E-App]{\flowstoquery{n; \env}{\env(n).\lblkw \flowsto p}{\conf{n}}{\level} \\\\ \expr' = \bind{\expr_1[\expr_2 / x]}{\abs{n}{\type}{x}{\lb{p}{x}}} \\\\ \nopostflowstoquery{n; \env}{\env(n).\lblkw \join \level}{\conf{n}} \\\\ \sigma = \extend{\env(n)}{\lblkw}{\env(n).\lblkw \join \level}}{\step{n; \env}{\config{\store}{\app{(\abs{n}{\lb{p}{\type}}{x}{\expr_1})}{\expr_2}}}{\config{\store}{\expr'}}{\sigma}}
     \and
-    \inferrule[E-New]{\addr \notin \dom(\store) \and \flowstoquery{n; \env}{\env(n).\lblkw}{p \flowsto \conf{n}}{\level} \\\\ \nopostflowstoquery{n; \env}{\env(n).\lblkw \join \level}{\conf{n}} \and \store' = \extend{\store}{\addr}{\lb{p}{\expr}} \\\\ \sigma = \extend{\env(n)}{\lblkw}{\env(n).\lblkw \join \level}}{\step{n; \env}{\config{\store}{\efill{\new{p}{\expr}}}}{ \config{\store'}{\efill{\return{\addr}}}}{\sigma}}
+    \inferrule[E-New]{\addr \notin \dom(\store) \and \flowstoquery{n; \env}{\env(n).\lblkw}{p \flowsto \conf{n}}{\level} \\\\ \nopostflowstoquery{n; \env}{\env(n).\lblkw \join \level}{\conf{n}} \and \store' = \extend{\store}{\addr}{\lb{p}{\expr}} \\\\ \sigma = \extend{\env(n)}{\lblkw}{\env(n).\lblkw \join \level}}{\step{n; \env}{\config{\store}{\new{p}{\expr}}}{ \config{\store'}{\return{\addr}}}{\sigma}}
     \and
-    \inferrule[E-Read]{\store(\addr) = \lb{p}{\expr} \and \flowstoquery{n; \env}{\env(n).\lblkw \join p}{\conf{n}}{\level} \\\\ \nopostflowstoquery{n; \env}{\env(n).\lblkw \join p \join \level}{\conf{n}} \\\\ \sigma = \extend{\env(n)}{\lblkw}{\env(n).\lblkw \join p \join \level}}{\step{n; \env}{\config{\store}{\efill{\readref{\addr}}}}{\config{\store}{\efill{\return{\expr}}}}{\sigma}}
+    \inferrule[E-Read]{\store(\addr) = \lb{p}{\expr} \and \flowstoquery{n; \env}{\env(n).\lblkw \join p}{\conf{n}}{\level} \\\\ \nopostflowstoquery{n; \env}{\env(n).\lblkw \join p \join \level}{\conf{n}} \\\\ \sigma = \extend{\env(n)}{\lblkw}{\env(n).\lblkw \join p \join \level}}{\step{n; \env}{\config{\store}{\readref{\addr}}}{\config{\store}{\return{\expr}}}{\sigma}}
     \and
-    \inferrule[E-Write]{\store(\addr) = \lb{p}{\expr} \and \flowstoquery{n; \env}{\env(n).\lblkw}{p \flowsto \conf{n}}{\level} \\\\ \nopostflowstoquery{n; \env}{\env(n).\lblkw \join \level}{\conf{n}} \and \store' = \extend{\store}{\addr}{\lb{p}{\expr'}} \\\\ \sigma = \extend{\env(n)}{\lblkw}{\env(n).\lblkw \join \level}}{\step{n; \env}{\config{\store}{\efill{\writeref{\addr}{\expr'}}}}{ \config{\store'}{\efill{\return{()}}}}{\sigma}}
+    \inferrule[E-Write]{\store(\addr) = \lb{p}{\expr} \and \flowstoquery{n; \env}{\env(n).\lblkw}{p \flowsto \conf{n}}{\level} \\\\ \nopostflowstoquery{n; \env}{\env(n).\lblkw \join \level}{\conf{n}} \and \store' = \extend{\store}{\addr}{\lb{p}{\expr'}} \\\\ \sigma = \extend{\env(n)}{\lblkw}{\env(n).\lblkw \join \level}}{\step{n; \env}{\config{\store}{\writeref{\addr}{\expr'}}}{ \config{\store'}{\return{()}}}{\sigma}}
 \end{mathpar}
+\caption{Monadic reductions for \lang{}.}
+\label{fig:monadic-reductions-1}
 \end{figure}
 
 \begin{figure}
 \centering
 \begin{mathpar}
-    \inferrule[E-Label]{\flowstoquery{n; \env}{\env(n).\lblkw}{p \flowsto \conf{n}}{\level} \\\\ \nopostflowstoquery{n; \env}{\env(n).\lblkw \join \level}{\conf{n}} \\\\ \sigma = \extend{\env(n)}{\env(n).\lblkw}{\env(n).\lblkw \join \level}}{\step{n; \env}{\config{\store}{\efill{\Label{p}{\expr}}}}{ \config{\store}{\efill{\return{(\lb{p}{\expr})}}}}{\sigma}}
+    \inferrule[E-Label]{\flowstoquery{n; \env}{\env(n).\lblkw}{p \flowsto \conf{n}}{\level} \\\\ \nopostflowstoquery{n; \env}{\env(n).\lblkw \join \level}{\conf{n}} \\\\ \sigma = \extend{\env(n)}{\env(n).\lblkw}{\env(n).\lblkw \join \level}}{\step{n; \env}{\config{\store}{\Label{p}{\expr}}}{ \config{\store}{\return{(\lb{p}{\expr})}}}{\sigma}}
     \and
-    \inferrule[E-Unlabel]{\flowstoquery{n; \env}{\env(n).\lblkw \join p}{\conf{n}}{\level} \\\\ \nopostflowstoquery{n; \env}{\env(n).\lblkw \join p \join \level}{\conf{n}} \\\\ \sigma = \extend{\env(n)}{\lblkw}{\env(n).\lblkw \join p \join \level}}{\step{n; \env}{\config{\store}{\efill{\unlabel{(\lb{p}{\expr})}}}}{ \config{\store}{\efill{\return{\expr}}}}{\sigma}}
+    \inferrule[E-Unlabel]{\flowstoquery{n; \env}{\env(n).\lblkw \join p}{\conf{n}}{\level} \\\\ \nopostflowstoquery{n; \env}{\env(n).\lblkw \join p \join \level}{\conf{n}} \\\\ \sigma = \extend{\env(n)}{\lblkw}{\env(n).\lblkw \join p \join \level}}{\step{n; \env}{\config{\store}{\unlabel{(\lb{p}{\expr})}}}{ \config{\store}{\return{\expr}}}{\sigma}}
     \and
-    \inferrule[E-ToLabeled-1]{q = \env(n).\lblkw \and \expr' = \internalTolabeled{q}{p}{\expr}}{\step{n; \env}{\config{\store}{\efill{\tolabeled{p}{\expr}}}}{ \config{\store}{\efill{\expr'}}}{\env(n)}}
+    \inferrule[E-ToLabeled-1]{q = \env(n).\lblkw \and \expr' = \internalTolabeled{q}{p}{\expr}}{\step{n; \env}{\config{\store}{\tolabeled{p}{\expr}}}{ \config{\store}{\expr'}}{\env(n)}}
     \and
-    \inferrule[E-ToLabeled-2]{\sigma = \extend{\env(n)}{\lblkw}{p}}{\step{n; \env}{\config{\store}{\efill{\internalTolabeled{p}{q}{\val}}}}{ \config{\store}{\efill{\Label{q}{\val}}}}{\sigma}}
+    \inferrule[E-ToLabeled-2]{\sigma = \extend{\env(n)}{\lblkw}{p}}{\step{n; \env}{\config{\store}{\internalTolabeled{p}{q}{\val}}}{ \config{\store}{\Label{q}{\val}}}{\sigma}}
     \and
-    \inferrule[E-Acts-For-True]{\actsforquery{n; \env}{p}{q}{\level} \and \nopostflowstoquery{n; \env}{\env(n).\lblkw \join \level}{\conf{n}} \\\\ \sigma = \extend{\env(n)}{\lblkw}{\env(n).\lblkw \join \level}}{\step{n; \env}{\config{\store}{\efill{p \actsfor q}}}{\config{\store}{\efill{\return{\true}}}}{\sigma}}
+    \inferrule[E-Acts-For-True]{\actsforquery{n; \env}{p}{q}{\level} \and \nopostflowstoquery{n; \env}{\env(n).\lblkw \join \level}{\conf{n}} \\\\ \sigma = \extend{\env(n)}{\lblkw}{\env(n).\lblkw \join \level}}{\step{n; \env}{\config{\store}{p \actsfor q}}{\config{\store}{\return{\true}}}{\sigma}}
     \and
-    \inferrule[E-Acts-For-False]{\notactsforquery{n; \env}{p}{q}{\level} \and \nopostflowstoquery{n; \env}{\env(n).\lblkw \join \level}{\conf{n}} \\\\ \sigma = \extend{\env(n)}{\lblkw}{\env(n).\lblkw \join \level}}{\step{n; \env}{\config{\store}{\efill{p \actsfor q}}}{\config{\store}{\efill{\return{\false}}}}{\sigma}}
+\inferrule[E-Acts-For-False]{%
+{\begin{matrix} \multirow{2}{*}{$\level' = \bigjoin_{\mathclap{\mathsf{s} \in \env(n).\strategy}} \mathsf{s}$} & \quad \forall \level~.~\notactsforquery{n; \env}{p}{q}{\level} \\ & \quad \nopostflowstoquery{n; \env}{\env(n).\lblkw \join \level'}{\conf{n}}\end{matrix}} \\\\
+\sigma = \extend{\env(n)}{\lblkw}{\env(n).\lblkw \join \level'}}{\step{n; \env}{\config{\store}{p \actsfor q}}{\config{\store}{\return{\false}}}{\sigma}}
     \and
-    \inferrule[E-With-Scope]{\expr' = \resetscope{\env(n).\scope}{\expr}}{\step{n; \env}{\config{\store}{\efill{\withscope{\expr}}}} {\config{\store'}{\efill{\expr'}}}{\env(n)}}
+    \inferrule[E-With-Scope]{\expr' = \resetscope{\env(n).\scope}{\expr}}{\step{n; \env}{\config{\store}{\withscope{\expr}}} {\config{\store'}{\expr'}}{\env(n)}}
     \and
-    \inferrule[E-Reset-Scope]{\sigma = \extend{\env(n)}{\scope}{\scope'}}{\step{n;\env}{\config{\store}{\efill{\resetscope{\scope'}{\val}}}}{\config{\store}{\efill{\val}}}{\sigma}}
+    \inferrule[E-Reset-Scope]{\sigma = \extend{\env(n)}{\scope}{\scope'}}{\step{n;\env}{\config{\store}{\resetscope{\scope'}{\val}}}{\config{\store}{\val}}{\sigma}}
     \and
-    \inferrule[E-With-Strategy]{\expr' = \resetstrategy{\env.\strategy}{\expr} \and \sigma = \extend{\env(n)}{\strategy}{\vec{p}}}{\step{n; \env}{\config{\store}{\efill{\withstrategy{\vec{p}}{\expr}}}}{ \config{\store}{\efill{\expr'}}}{\sigma}}
+    \inferrule[E-With-Strategy]{\expr' = \resetstrategy{\env.\strategy}{\expr} \and \sigma = \extend{\env(n)}{\strategy}{\vec{p}}}{\step{n; \env}{\config{\store}{\withstrategy{\vec{p}}{\expr}}}{ \config{\store}{\expr'}}{\sigma}}
     \and
-    \inferrule[E-Reset-Strategy]{\sigma = \extend{\env(n)}{\strategy}{\vec{p}}}{\step{n; \env}{\config{\store}{\efill{\resetstrategy{\vec{p}}{\val}}}}{ \config{\store}{\efill{\val}}}{\sigma}}
+    \inferrule[E-Reset-Strategy]{\sigma = \extend{\env(n)}{\strategy}{\vec{p}}}{\step{n; \env}{\config{\store}{\resetstrategy{\vec{p}}{\val}}}{ \config{\store}{\val}}{\sigma}}
     \and
-    \inferrule[E-Assume]{\flowstoquery{n; \env}{\env(n).\lblkw}{r}{\level_1} \and \actsforquery{n; \env}{\env(n).\lblkw}{\voice{q}}{\level_2} \\\\ \nopostflowstoquery{n; \env}{\env(n).\lblkw \join \level_1 \join \level_2}{\conf{n}} \\\\ \sigma = \extends{\env(n)}{\scope \mapsto \cons{\lb{r}{(p, q)}}{\env . \scope}), \lblkw \mapsto \env(n).\lblkw \join \level_1 \join \level_2}}{\step{n; \env}{\config{\store}{\efill{\adddelegate{p}{q}{r}}}}{ \config{\store}{\efill{\return{()}}}}{\sigma}}
+    \inferrule[E-Assume]{\flowstoquery{n; \env}{\env(n).\lblkw}{r}{\level_1} \and \actsforquery{n; \env}{\env(n).\lblkw}{\voice{q}}{\level_2} \\\\ \nopostflowstoquery{n; \env}{\env(n).\lblkw \join \level_1 \join \level_2}{\conf{n}} \\\\ \sigma = \extends{\env(n)}{\scope \mapsto \cons{\lb{r}{(p, q)}}{\env . \scope}), \lblkw \mapsto \env(n).\lblkw \join \level_1 \join \level_2}}{\step{n; \env}{\config{\store}{\adddelegate{p}{q}{r}}}{ \config{\store}{\return{()}}}{\sigma}}
 \end{mathpar}
-\caption{Monadic reductions for \lang.}
-\label{fig:monadic-reductions}
+\caption{Monadic reductions for \lang{} (cont).}
+\label{fig:monadic-reductions-2}
 \end{figure}
