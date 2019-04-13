@@ -38,11 +38,11 @@
 {\begin{matrix} \multirow{2}{*}{$\level' = \bigjoin_{\mathclap{\mathsf{s} \in \env(n).\strategy}} \mathsf{s}$} & \quad \forall \level~.~\notactsforquery{n; \env}{p}{q}{\level} \\ & \quad \nopostflowstoquery{n; \env}{\env(n).\lblkw \join \level'}{\conf{n}}\end{matrix}} \\\\
 \sigma = \extend{\env(n)}{\lblkw}{\env(n).\lblkw \join \level'}}{\step{n; \env}{\config{\store}{p \actsfor q}}{\config{\store}{\return{\false}}}{\sigma}}
     \and
-    \inferrule[E-With-Scope]{\expr' = \resetscope{\env(n).\scope}{\expr}}{\step{n; \env}{\config{\store}{\withscope{\expr}}} {\config{\store'}{\expr'}}{\env(n)}}
+    \inferrule[E-With-Scope]{\expr' = \resetscope{\env(n).\scope}{\expr}}{\step{n; \env}{\config{\store}{\withscope{\expr}}} {\config{\store}{\expr'}}{\env(n)}}
     \and
     \inferrule[E-Reset-Scope]{\sigma = \extend{\env(n)}{\scope}{\scope'}}{\step{n;\env}{\config{\store}{\resetscope{\scope'}{\val}}}{\config{\store}{\val}}{\sigma}}
     \and
-    \inferrule[E-With-Strategy]{\expr' = \resetstrategy{\env.\strategy}{\expr} \and \sigma = \extend{\env(n)}{\strategy}{\vec{p}}}{\step{n; \env}{\config{\store}{\withstrategy{\vec{p}}{\expr}}}{ \config{\store}{\expr'}}{\sigma}}
+    \inferrule[E-With-Strategy]{\expr' = \resetstrategy{\env.\strategy}{\expr} \and \sigma = \extend{\env(n)}{\strategy}{\vec{p}}}{\step{n; \env}{\config{\store}{\withstrategy{\vec{p}}{\expr}}}{ \config{\store'}{\expr'}}{\sigma}}
     \and
     \inferrule[E-Reset-Strategy]{\sigma = \extend{\env(n)}{\strategy}{\vec{p}}}{\step{n; \env}{\config{\store}{\resetstrategy{\vec{p}}{\val}}}{ \config{\store}{\val}}{\sigma}}
     \and
