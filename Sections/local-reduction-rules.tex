@@ -1,7 +1,7 @@
 \begin{figure}
 \centering
 \begin{mathpar}
-    \inferrule[E-Lift-Pure]{\steppure{\expr}{\expr'}}{\step{n; \env}{\config{\store}{\efill{\expr}}}{\config{\store}{\efill{\expr'}}}{\env(n)}}
+    \inferrule[E-Lift-Pure]{\steppure{\expr}{\expr'}}{\step{n; \env}{\config{\store}{\expr}}{\config{\store}{\expr'}}{\env(n)}}
     \and
     \inferrule[E-Ctx]{\step{n; \env}{\config{\store}{\expr}}{\config{\store'}{\expr'}}{\sigma}}{\step{n; \env}{\config{\store}{\efill{\expr}}}{\config{\store'}{\efill{\expr'}}}{\sigma}}
     \and
@@ -35,7 +35,7 @@
     \inferrule[E-Acts-For-True]{\actsforquery{n; \env}{p}{q}{\level} \and \nopostflowstoquery{n; \env}{\env(n).\lblkw \join \level}{\conf{n}} \\\\ \sigma = \extend{\env(n)}{\lblkw}{\env(n).\lblkw \join \level}}{\step{n; \env}{\config{\store}{p \actsfor q}}{\config{\store}{\return{\true}}}{\sigma}}
     \and
 \inferrule[E-Acts-For-False]{%
-{\begin{matrix} \multirow{2}{*}{$\level' = \bigjoin_{\mathclap{\mathsf{s} \in \env(n).\strategy}} \mathsf{s}$} & \quad \forall \level~.~\notactsforquery{n; \env}{p}{q}{\level} \\ & \quad \nopostflowstoquery{n; \env}{\env(n).\lblkw \join \level'}{\conf{n}}\end{matrix}} \\\\
+\level' = \conf{n} \meet \bigjoin_{\mathclap{\mathsf{s} \in \env(n).\strategy}} \mathsf{s} \and \forall \level~.~\notactsforquery{n; \env}{p}{q}{\level} \\\\
 \sigma = \extend{\env(n)}{\lblkw}{\env(n).\lblkw \join \level'}}{\step{n; \env}{\config{\store}{p \actsfor q}}{\config{\store}{\return{\false}}}{\sigma}}
     \and
     \inferrule[E-With-Scope]{\expr' = \resetscope{\env(n).\scope}{\expr}}{\step{n; \env}{\config{\store}{\withscope{\expr}}} {\config{\store}{\expr'}}{\env(n)}}

@@ -42,7 +42,7 @@ Finally, types are ranged over by the meta-variable $\type$ and include standard
 The semantics of \lang{} is split into two judgments: local reduction rules, which evaluate an expression on a specific node; and global reduction rules, which perform remote procedure calls (RPCs) and returns. We first present the local reduction rules.
 
 \paragraph{Local semantics}
-A structured operational semantics defines the local reduction rules with evaluation contexts \cite{Felleisen:1988:TPF:73560.73576}. We elide the definition of evaluation contexts, as this is mostly standard.
+A structured operational semantics defines the local reduction rules with evaluation contexts \cite{Felleisen:1988:TPF:73560.73576}. We elide the definition of evaluation contexts, as this is mostly standard for a call-by-name calculus.
 
 We further split the local reduction rules into two categories: pure reduction and monadic reduction. Pure reduction rules $\steppure{\expr}{\expr'}$ reduce expressions independently of the store and of which node is evaluating the expression. They are given in Figure~\ref{fig:pure-reductions}. Pure reductions include injecting terms into monadic contexts, monadically binding terms, recursive applications, projecting pairs, eliminating booleans and lists and obtaining the label of a labeled value.
 
