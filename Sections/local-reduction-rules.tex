@@ -42,7 +42,7 @@
     \and
     \inferrule[E-Reset-Scope]{\sigma = \extend{\env(n)}{\scope}{\scope'}}{\step{n;\env}{\config{\store}{\resetscope{\scope'}{\val}}}{\config{\store}{\val}}{\sigma}}
     \and
-    \inferrule[E-With-Strategy]{\expr' = \resetstrategy{\env.\strategy}{\expr} \and \sigma = \extend{\env(n)}{\strategy}{\vec{p}}}{\step{n; \env}{\config{\store}{\withstrategy{\vec{p}}{\expr}}}{ \config{\store'}{\expr'}}{\sigma}}
+    \inferrule[E-With-Strategy]{\expr' = \resetstrategy{\env.\strategy}{\expr} \and \sigma = \extend{\env(n)}{\strategy}{\vec{p}}}{\step{n; \env}{\config{\store}{\withstrategy{\vec{p}}{\expr}}}{ \config{\store}{\expr'}}{\sigma}}
     \and
     \inferrule[E-Reset-Strategy]{\sigma = \extend{\env(n)}{\strategy}{\vec{p}}}{\step{n; \env}{\config{\store}{\resetstrategy{\vec{p}}{\val}}}{ \config{\store}{\val}}{\sigma}}
     \and
