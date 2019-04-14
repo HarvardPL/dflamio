@@ -30,11 +30,10 @@
 \usepackage{capt-of}
 \usepackage[style=ieee, doi=false,isbn=false,url=false]{biblatex}
 \setlength\bibitemsep{0.6\baselineskip}
-\DeclareFieldFormat{pages}{}
+\DeclareFieldFormat[book,inbook,article,incollection,inproceedings]{pages}{}
 \DeclareFieldFormat[book,inbook,article,incollection,inproceedings]{volume}{}
 \DeclareFieldFormat[book,inbook,article,incollection,inproceedings]{number}{}
-\DeclareFieldFormat[book,inbook,article,incollection,inproceedings]{series}{#1}
-%\DeclareFieldFormat[inproceedings]{editor}{}
+\DeclareFieldFormat[book,inbook,article,incollection,inproceedings]{series}{}
 \usepackage{xspace}
 \input{macros.tex}
 
