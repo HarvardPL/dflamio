@@ -140,52 +140,52 @@ Note that the computation is decentralized, and multiple nodes with different re
 \begin{figure}
     \centering
     \begin{mathpar}
-    \inferrule[Acts-For-Cons-1]{\actsforquery{C}[\stratelem]{p}{q}{\level}}{\actsforquery{C}[\cons{\stratelem}{\stratelem*}]{p}{q}{\level}}
+    \inferrule[Acts-For-Cons-1]{\actsforquery{\Assumps; n; \env}[\stratelem \meet \conf{n}]{p}{q}{\level}}{\actsforquery{\Assumps; n; \env}[\cons{\stratelem}{\stratelem*}]{p}{q}{\level}}
     \and
-    \inferrule[Acts-For-Cons-2]{\forall \level'~.~ \notactsforquery{C}[\!\!\stratelem]{\,p}{q}{\level'} \\\\ \actsforquery{C}[\stratelem*]{p}{q}{\level}}{\actsforquery{C}[\cons{\stratelem}{\stratelem*}]{p}{q}{\stratelem \join \level}}
+    \inferrule[Acts-For-Cons-2]{\notactsforquery{\Assumps; n; \env}[\stratelem \meet \conf{n}]{p}{q} \\\\ \actsforquery{\Assumps; n; \env}[\stratelem*]{p}{q}{\level}}{\actsforquery{\Assumps; n; \env}[\cons{\stratelem}{\stratelem*}]{p}{q}{\level}}
     \and
-    \inferrule[Acts-For-Nil]{\actsforquery{C}[\none]{p}{q}{\botinfoflow}}{\actsforquery{C}[\nil]{p}{q}{\botinfoflow}}
+    \inferrule[Acts-For-Nil]{~}{\notactsforquery{C}[\nil]{p}{q}}
     \and
-    \inferrule[Acts-For]{\stratelem* = \env(n).\strategy \and \actsforquery{C}[\stratelem*]{p}{q}{\level}}{\actsforquery{C}{p}{q}{\level}}
+    \inferrule[Acts-For]{\stratelem* = \env(n).\strategy \and \actsforquery{C}[\stratelem*]{p}{q}{\option{\level}}}{\actsforquery{C}{p}{q}{\option{\level}}}
     \end{mathpar}
     \caption{Top-level judgment for proving authorization queries in \lang. The meta-variable $C$ abbreviates $\Assumps; n; \env$.}
     \label{fig:top-level-act-for-judgment}
 \end{figure}
 
-Rule~\ruleref{Acts-For} in Figure~\ref{fig:top-level-act-for-judgment} is the top-level judgment for deriving trust, which iterates through the strategy principals in the current strategy and attempts to prove the trust relationship. Rule~\ruleref{Acts-For-Cons-1} states that, once a strategy principal proves the trust, the query succeeds, and \ruleref{Acts-For-Cons-2} states that, if a strategy principal cannot prove the trust relationship ($\forall \level'.~ \notactsforquery{C}[\!\!\stratelem]{\,p}{q}{\level'}$), the search continues with the tail $\stratelem*$ of the strategy. Finally, if the strategy is $\nil$, no strategy principal is used, which prevents the use of delegations. Since no delegations are unlabeled, the trust is derived without raising the current label.
+Rule~\ruleref{Acts-For} in Figure~\ref{fig:top-level-act-for-judgment} is the top-level judgment for deriving trust, which iterates through the strategy principals in the current strategy and attempts to prove the trust relationship. Rule~\ruleref{Acts-For-Cons-1} states that, once a strategy principal proves the trust, the query succeeds, and \ruleref{Acts-For-Cons-2} states that, if a strategy principal cannot prove the trust relationship ($\forall \level'.~ \notactsforquery{C}[\!\!\stratelem]{\,p}{q}$), the search continues with the tail $\stratelem*$ of the strategy. Finally, if the strategy is $\nil$, no strategy principal is used, which prevents the use of delegations. Since no delegations are unlabeled, the trust is derived without raising the current label.
 
 \begin{figure}
     \centering
     \begin{mathpar}
-    \inferrule[Bot]{}{\actsforquery{C}[\option{\stratelem}]{p}{\bot}{\botinfoflow}}
+    \inferrule[Bot]{}{\actsforquery{C}[\stratelem]{p}{\bot}{\botinfoflow}}
     \and
-    \inferrule[Top]{}{\actsforquery{C}[\option{\stratelem}]{\top}{p}{\botinfoflow}}
+    \inferrule[Top]{}{\actsforquery{C}[\stratelem]{\top}{p}{\botinfoflow}}
     \and
-    \inferrule[Refl]{}{\actsforquery{C}[\option{\stratelem}]{p}{p}{\botinfoflow}}
+    \inferrule[Refl]{}{\actsforquery{C}[\stratelem]{p}{p}{\botinfoflow}}
     \and
-    \inferrule[Assump]{(p \actsfor q) \in \Assumps}{\actsforquery{C}[\option{\stratelem}]{p}{q}{\botinfoflow}}
+    \inferrule[Assump]{(p \actsfor q) \in \Assumps}{\actsforquery{C}[\stratelem]{p}{q}{\botinfoflow}}
     \and
-    \inferrule[Proj]{\actsforquery{C}[\option{\stratelem}]{p}{q}{\level}}{\actsforquery{C}[\option{\stratelem}]{\authproj{p}}{\authproj{q}}{\level}}
+    \inferrule[Proj]{\actsforquery{C}[\stratelem]{p}{q}{\level}}{\actsforquery{C}[\stratelem]{\authproj{p}}{\authproj{q}}{\level}}
     \and
-    \inferrule[ProjR]{}{\actsforquery{C}[\option{\stratelem}]{p}{\authproj{p}}{\botinfoflow}}
+    \inferrule[ProjR]{}{\actsforquery{C}[\stratelem]{p}{\authproj{p}}{\botinfoflow}}
     \and
-    \inferrule[Own-1]{\actsforquery{C}[\option{\stratelem}]{o}{o'}{\level_1} \\\\ \actsforquery{C}[\option{\stratelem}]{p}{p'}{\level_2}}{\actsforquery{C}[\option{\stratelem}]{\owner{o}{p}}{\owner{o'}{p'}}{\level_1 \join \level_2}}
+    \inferrule[Own-1]{\actsforquery{C}[\stratelem]{o}{o'}{\level_1} \\\\ \actsforquery{C}[\stratelem]{p}{p'}{\level_2}}{\actsforquery{C}[\stratelem]{\owner{o}{p}}{\owner{o'}{p'}}{\level_1 \join \level_2}}
     \and
-    \inferrule[Own-2]{\actsforquery{C}[\option{\stratelem}]{o}{o'}{\level_1} \\\\ \actsforquery{C}[\option{\stratelem}]{p}{\owner{o'}{p'}}{\level_2}}{\actsforquery{C}[\option{\stratelem}]{\owner{o}{p}}{\owner{o'}{p'}}{\level_1 \join \level_2}}
+    \inferrule[Own-2]{\actsforquery{C}[\stratelem]{o}{o'}{\level_1} \\\\ \actsforquery{C}[\stratelem]{p}{\owner{o'}{p'}}{\level_2}}{\actsforquery{C}[\stratelem]{\owner{o}{p}}{\owner{o'}{p'}}{\level_1 \join \level_2}}
     \and
-    \inferrule[Conj-L]{j \in \{ 1, 2 \} \\\\ \actsforquery{C}[\option{\stratelem}]{p_j}{p}{\level}}{\actsforquery{C}[\option{\stratelem}]{p_1 \conj p_2}{p}{\level}}
+    \inferrule[Conj-L]{j \in \{ 1, 2 \} \\\\ \actsforquery{C}[\stratelem]{p_j}{p}{\level}}{\actsforquery{C}[\stratelem]{p_1 \conj p_2}{p}{\level}}
     \and
-    \inferrule[Conj-R]{\actsforquery{C}[\option{\stratelem}]{p}{p_1}{\level_1} \\\\\ \actsforquery{C}[\option{\stratelem}]{p}{p_2}{\level_2}}{\actsforquery{C}[\option{\stratelem}]{p}{p_1 \conj p_2}{\level_1 \join \level_2}}
+    \inferrule[Conj-R]{\actsforquery{C}[\stratelem]{p}{p_1}{\level_1} \\\\\ \actsforquery{C}[\stratelem]{p}{p_2}{\level_2}}{\actsforquery{C}[\stratelem]{p}{p_1 \conj p_2}{\level_1 \join \level_2}}
     \and
-    \inferrule[Disj-L]{\actsforquery{C}[\option{\stratelem}]{p_1}{p}{\level_1} \\\\\ \actsforquery{C}[\option{\stratelem}]{p_2}{p}{\level_2}}{\actsforquery{C}[\option{\stratelem}]{p_1 \disj p_2}{p}{\level_1 \join \level_2}}
+    \inferrule[Disj-L]{\actsforquery{C}[\stratelem]{p_1}{p}{\level_1} \\\\\ \actsforquery{C}[\stratelem]{p_2}{p}{\level_2}}{\actsforquery{C}[\stratelem]{p_1 \disj p_2}{p}{\level_1 \join \level_2}}
     \and
-    \inferrule[Disj-R]{j \in \{ 1, 2 \} \\\\ \actsforquery{C}[\option{\stratelem}]{p}{p_j}{\level}}{\actsforquery{C}[\option{\stratelem}]{p}{p_1 \disj p_2}{\level}}
+    \inferrule[Disj-R]{j \in \{ 1, 2 \} \\\\ \actsforquery{C}[\stratelem]{p}{p_j}{\level}}{\actsforquery{C}[\stratelem]{p}{p_1 \disj p_2}{\level}}
     \and
-    \inferrule[Trans]{\actsforquery{C}[\option{\stratelem}]{p}{q}{\level_1} \\\\ \actsforquery{C}[\option{\stratelem}]{q}{r}{\level_2}}{\actsforquery{C}[\option{\stratelem}]{p}{r}{\level_1 \join \level_2}}
+    \inferrule[Trans]{\actsforquery{C}[\stratelem]{p}{q}{\level_1} \\\\ \actsforquery{C}[\stratelem]{q}{r}{\level_2}}{\actsforquery{C}[\stratelem]{p}{r}{\level_1 \join \level_2}}
     \and
-    \inferrule[Del]{\lb{\level}{p \actsfor q} \in \env(n).\scope \\\\ \flowstoquery{\Assumps, p \actsfor q; n; \env}{\level}{s}{\level'} \\\\ \flowstoquery{\Assumps, p \actsfor q; n; \env}{\level'}{s}{\botinfoflow} \\\\ \forall \level''~.~\notactsforquery{\Assumps; n; \env}[\!\!\none]{\,p}{q}{\level''}}{\actsforquery{\Assumps; n; \env}[\stratelem]{p}{q}{\level}}
+    \inferrule[Del]{\lb{\level}{p \actsfor q} \in \env(n).\scope \\\\ \flowstoquery{\Assumps, p \actsfor q; n; \env}{\level}{s}{\level'} \\\\ \flowstoquery{\Assumps, p \actsfor q; n; \env}{\level'}{s}{\botinfoflow} \\\\ \forall \level''~.~\notactsforquery{\Assumps; n; \env}[\!\!\none]{\,p}{q}}{\actsforquery{\Assumps; n; \env}[\stratelem]{p}{q}{\level}}
     \and
-    \inferrule[Fwd]{\level_n = \env(n).\lblkw \and \sigma_m = \extends{\env(m)}{\lblkw \mapsto \level_n \join \level_m} \\\\ \level_m = \env(m).\lblkw \and \flowstoquery{\Assumps; n; \env}{\level_n \join \level_m}{\conf{m}}{\level_1} \\\\ \actsforquery{\Assumps; m; \extend{\env}{m}{\sigma_m}}[\option{\stratelem}]{p}{q}{\level_2} }{\actsforquery{\Assumps; n; \env}[\option{\stratelem}]{p}{q}{\level_1 \join \level_2}}
+    \inferrule[Fwd]{\level_n = \env(n).\lblkw \and \sigma_m = \extends{\env(m)}{\lblkw \mapsto \level_n \join \level_m} \\\\ \level_m = \env(m).\lblkw \and \flowstoquery{\Assumps; n; \env}{\level_n \join \level_m}{\conf{m}}{\level_1} \\\\ \actsforquery{\Assumps; m; \extend{\env}{m}{\sigma_m}}[\stratelem]{p}{q}{\level_2} }{\actsforquery{\Assumps; n; \env}[\stratelem]{p}{q}{\level_1 \join \level_2}}
     \end{mathpar}
     \caption{Acts for judgment of \lang. The meta-variable $C$ abbreviates $\Assumps; n; \env$.}
     \label{fig:act-for-judgment}
@@ -209,7 +209,7 @@ Finally, rule \ruleref{Del} expresses how delegations are used to derive trust. 
 When checking if a delegation can be used in the rule \ruleref{Del}, the assumptions $\Assumps$ is extended to include the trust relationship that is being checked. This usage of assumptions is a form of checked endorsement which was also noted to be a useful extension to the Jif programming language \cite{Chong:2007:SWA:1294261.1294265}.
 To see the effect of this style of reasoning, consider the query $\flowstoquery{n; \env}{p}{q}{\level}$ where $\env(n) = (\integ{n}, \scope, \lbrack q \rbrack)$ and $\scope = \{\lb{p}{(\conf{q} \conj \integ{p} \actsfor \conf{p} \conj \integ{q})} \}$. This query is equivalent to $\actsforquery{n; \env}{\conf{q} \conj \integ{p}}{\conf{p} \conj \integ{q}}{\level}$, so applying \ruleref{Del} the goal reduces to proving $\flowstoquery{p \flowsto q; n; \env}{p}{q}{\level'}$ for some $\level'$, which (ignoring the assumption) is the exact same query we started out with! However, we now have the assumption $p \flowsto q$, and the goal follows by applying \ruleref{Assump}. If no assumption was added when checking that the label on the delegation $\lb{p}{p \flowsto q}$ flows to the strategy principal $q$, this trust relationship could not be proven in any finite derivation. While this situation might appear artificial, Section~\ref{sec:case-studies} presents a use case where this problem arises naturally.
 
-The rule also ensures that the trust could not be derived without using a delegation ($\forall \level''. \notactsforquery{\Assumps; n; \env}[\!\!\none]{\,p}{q}{\level''}$). This condition ensures that the current label is not needlessly raised during trust checking. In practice, checking that the trust cannot be derived without using delegations amounts to only applying the \ruleref{Del} rule when the other rules fail to prove the trust relationship. Note that \ruleref{Del} requires a strategy principal $\stratelem$, instead of the optional principal $\option{\stratelem}$ found on the other rules: it does not make sense to apply the \ruleref{Del} rule without a strategy principal.
+The rule also ensures that the trust could not be derived without using a delegation ($\forall \level''. \notactsforquery{\Assumps; n; \env}[\!\!\none]{\,p}{q}$). This condition ensures that the current label is not needlessly raised during trust checking. In practice, checking that the trust cannot be derived without using delegations amounts to only applying the \ruleref{Del} rule when the other rules fail to prove the trust relationship. Note that \ruleref{Del} requires a strategy principal $\stratelem$, instead of the optional principal $\option{\stratelem}$ found on the other rules: it does not make sense to apply the \ruleref{Del} rule without a strategy principal.
 
 We end this section with an example of a query that morally should hold, but which cannot be justified using our pragmatic trust judgment. Given the following four delegation sets:
 \begin{align*}

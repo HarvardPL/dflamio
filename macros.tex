@@ -127,7 +127,7 @@
 \newcommand{\flowsto}{\sqsubseteq}
 \newcommand{\nflowsto}{\not\flowsto}
 \newcommand{\level}{\ell}
-\newcommand{\extend}[3]{#1 \lbrack #2 \mapsto #3 \rbrack}
+\newcommand{\extend}[3]{#1 \left\lbrack #2 \mapsto #3 \right\rbrack}
 \newcommand{\join}{\sqcup}
 \newcommand{\bigjoin}{\bigsqcup}
 \newcommand{\meet}{\sqcap}
@@ -137,8 +137,8 @@
 \NewDocumentCommand{\actsforquery}{mommm}{
 #1 \IfNoValueTF{#2}{\vdash}{\vdash_{#2}} #3 \actsfor #4 \IfNoValueOrEmptyTF{#5}{}{: #5}
 }
-\NewDocumentCommand{\notactsforquery}{mommm}{
-#1 \IfNoValueTF{#2}{\centernot\vdash}{\centernot\vdash_{#2}} #3 \actsfor #4 \IfNoValueOrEmptyTF{#5}{}{: #5}
+\NewDocumentCommand{\notactsforquery}{momm}{
+#1 \IfNoValueTF{#2}{\vdash}{\vdash_{#2}} #3 \actsfor #4 : \mathsf{fail}
 }
 \newcommand{\strategy}{\mathsf{strat}}
 \NewDocumentCommand{\stratelem}{s}{
@@ -148,7 +148,7 @@
 \newcommand{\none}{\circ}
 \newcommand{\voicekw}{\nabla}
 \newcommand{\voice}[1]{\voicekw(#1)}
-\newcommand{\extends}[2]{#1 \lbrack #2 \rbrack}
+\newcommand{\extends}[2]{#1 \left\lbrack #2 \right\rbrack}
 \newcommand{\actsforquerycount}[5]{#1 \vdash^{#5} #2 \actsfor #3 : #4}
 \newcommand{\nopostnotflowstoquery}[3]{#1 \vdash #2 \not\flowsto #3}
 \newcommand{\notflowstoquery}[4]{#1 \nvdash #2\flowsto #3 : #4}
@@ -188,7 +188,6 @@
 \newcommand{\filtertrace}{\leadsto}
 \NewDocumentCommand{\traceloweq}{m m m O{} }{#1 \simeq_{#2}^{#4} #3}
 \NewDocumentCommand{\loweq}{ m m O{} m m }{#1 \vdash #4 \simeq_{#2}^{#3} #5}
-\NewDocumentCommand{\loweql}{ m m O{} m m }{#1 \vdash_{L} #4 \simeq_{#2}^{#3} #5}
 \newcommand{\emptyenv}{\varnothing}
 \newcommand{\nodelegations}{\nil}
 \newcommand{\bijection}{\theta}

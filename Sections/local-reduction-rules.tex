@@ -35,8 +35,8 @@
     \inferrule[E-Acts-For-True]{\actsforquery{n; \env}{p}{q}{\level} \and \nopostflowstoquery{n; \env}{\env(n).\lblkw \join \level}{\conf{n}} \\\\ \sigma = \extend{\env(n)}{\lblkw}{\env(n).\lblkw \join \level}}{\step{n; \env}{\config{\store}{p \actsfor q}}{\config{\store}{\return{\true}}}{\sigma}}
     \and
 \inferrule[E-Acts-For-False]{%
-\level' = \conf{n} \meet \bigjoin_{\mathclap{\mathsf{s} \in \env(n).\strategy}} \mathsf{s} \and \forall \level~.~\notactsforquery{n; \env}{p}{q}{\level} \\\\
-\sigma = \extend{\env(n)}{\lblkw}{\env(n).\lblkw \join \level'}}{\step{n; \env}{\config{\store}{p \actsfor q}}{\config{\store}{\return{\false}}}{\sigma}}
+\level = \conf{n} \meet \bigjoin_{\mathclap{\mathsf{s} \in \env(n).\strategy}} \mathsf{s} \and \notactsforquery{n; \env}{p}{q} \\\\
+\sigma = \extend{\env(n)}{\lblkw}{\env(n).\lblkw \join \level }}{\step{n; \env}{\config{\store}{p \actsfor q}}{\config{\store}{\return{\false}}}{\sigma}}
     \and
     \inferrule[E-With-Scope]{\expr' = \resetscope{\env(n).\scope}{\expr}}{\step{n; \env}{\config{\store}{\withscope{\expr}}} {\config{\store}{\expr'}}{\env(n)}}
     \and
