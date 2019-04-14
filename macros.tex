@@ -155,7 +155,7 @@
 
 \newcommand{\gconfig}[3]{\llparenthesis #1, #2, #3 \rrparenthesis}
 \NewDocumentCommand{\gstepsto}{ O{} O{} }{\xRightarrow[#1]{\mathmakebox[1em]{#2}}}
-\NewDocumentCommand{\gstepstos}{ O{} O{} O{*} }{{\xRightarrow[#1]{\IfNoValueOrEmptyTF{#2}{\mathmakebox[1em]{}}{\mathmakebox[1.4em]{#2}}}{}\!\!^{#3}}}
+\NewDocumentCommand{\gstepstos}{ O{} O{} O{*} }{{\xRightarrow[#1]{\IfNoValueOrEmptyTF{#2}{\mathmakebox[1em]{}}{\mathmakebox[\maxof{\widthof{\ensuremath{#2}}-1.2em}{1em}]{#2}}}{}\!\!^{#3}}}
 
 \newcommand{\Assumps}{\mathcal{H}}
 \newcommand{\authproj}[1]{#1^{\pi}}
