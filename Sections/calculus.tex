@@ -26,7 +26,7 @@ Finally, types are ranged over by the meta-variable $\type$ and include standard
          \mid \unlabel{\expr} \mid
          \tolabeled{\expr}{\expr} \mid \getlabel \mid \getclearance \\ &\quad
          \mid \labelof{\expr} \mid \withscope{\expr} \mid \expr \actsfor \expr \mid \withstrategy{\expr}{\expr} \\ &\quad \mid \adddelegate{\expr}{\expr}{\expr} \mid \getstrategy
-         \mid \graybox{\wait{n}[\type]} \\ &\quad
+         \mid \graybox{\wait[\type]} \\ &\quad
          \mid \graybox{\internalTolabeled{p}{q}{\expr} \mid \resetstrategy{\overline{p}}{\expr} \mid \resetscope{\scope}{\expr}}
          \end{aligned}$ \\
          $\begin{aligned}[t]
@@ -104,7 +104,7 @@ Figure~\ref{fig:use-case-for-fluid-scope} demonstrates the usefulness of delegat
                              aliceCode
   in g bobSecret) ()
 \end{lstlisting}
-\caption{Bob grants a function supplied by Alice with authority to read Bob's confidential information once. }
+\caption{Bob grants a function, supplied by Alice, authority to read Bob's confidential information once. }
 \label{fig:use-case-for-fluid-scope}
 \end{figure}
 
@@ -113,7 +113,7 @@ A global configuration is a triple $\gconfig{n}{\env}{S}$ consisting of a node $
 
 We now explain how to express RPC. Rule \ruleref{G-Step-App} transfers control to the target node, and the computation is wrapped in a $\tolabeledkw$ construct at the top of the execution stack on the target node to prevent the evaluation of the expression from raising the current label.
 The rule ensures that $m$'s new current label $\level_n \join \level_m$, flows to $m$'s clearance label $\conf{m}$. This check ensures that the clearance always upper bounds the current label.
-Finally, the evaluation on the source node is suspended by inserting an expression $\wait{m}[\type]$. Second, Rule \ruleref{G-Step-Ret} returns control to a suspended source node when the top of the execution stack on the target node has reduced to a term.
+Finally, the evaluation on the source node is suspended by inserting an expression $\wait[\type]$. Second, Rule \ruleref{G-Step-Ret} returns control to a suspended source node when the top of the execution stack on the target node has reduced to a term.
 
 %The final rule, \ruleref{G-Step-Stop} halts the execution when the last node has reduced its expression to a term. We use the notation $\bullet(S)$ to mean $S = \config{\store}{\bullet}$ for some store $\store$.
 
@@ -122,11 +122,11 @@ Note that the computation is decentralized, and multiple nodes with different re
 \begin{figure}
 \centering
 \begin{mathpar}
-\inferrule[G-Step-Local]{\step{n; \env}{S(n)}{s}{\sigma}}{\gconfig{n}{\env}{S} \gstepsto \gconfig{n}{\extend{\env}{n}{\sigma}}{\extend{S}{n}{s}}}
+\inferrule[G-Step-Local]{\step{n; \env}{S(n)}{s}{\sigma}}{\gconfig{n \cdot \overline{n}}{\env}{S} \gstepsto \gconfig{n \cdot \overline{n}}{\extend{\env}{n}{\sigma}}{\extend{S}{n}{s}}}
 \and
-\inferrule[G-Step-App]{\level_n = \env(n).\lblkw \and \level_m = \env(m).\lblkw \and S(m) = \config{\store_m}{\overline{\expr_m}} \\\\ \nopostflowstoquery{m; \env}{\level_n \join \level_m}{\conf{m}} \and S(n) = \config{\store_n}{\efill{\app{(\abs{m}{\lb{p}{\type}}{x}{\expr_n})}{\expr_n'}}} \\\\ s_n' = \config{\store_n}{\efill{\wait{m}[\type]}} \and \sigma_m' = \extend{\env(m)}{\lblkw}{\level_n \join \level_m} \\\\ s_m' = \config{\store_m}{(\internalTolabeled{\level_m}{p}{(\expr_n[\expr_n' / x])}) ; \overline{\expr_m}}}{\gconfig{n}{\env}{S} \gstepsto \gconfig{m}{\extend{\env}{m}{\sigma_m'}}{\extends{S}{n \mapsto s_n', m \mapsto s_m'}}}
+\inferrule[G-Step-App]{\level_n = \env(n).\lblkw \and \level_m = \env(m).\lblkw \and S(m) = \config{\store_m}{\overline{\expr_m}} \\\\ \nopostflowstoquery{m; \env}{\level_n \join \level_m}{\conf{m}} \and S(n) = \config{\store_n}{\efill{\app{(\abs{m}{\lb{p}{\type}}{x}{\expr_n})}{\expr_n'}}} \\\\ s_n' = \config{\store_n}{\efill{\wait[\type]}} \and \sigma_m' = \extend{\env(m)}{\lblkw}{\level_n \join \level_m} \\\\ s_m' = \config{\store_m}{(\internalTolabeled{\level_m}{p}{(\expr_n[\expr_n' / x])}) ; \overline{\expr_m}}}{\gconfig{n \cdot \overline{n}}{\env}{S} \gstepsto \gconfig{m \cdot n \cdot \overline{n}}{\extend{\env}{m}{\sigma_m'}}{\extends{S}{n \mapsto s_n', m \mapsto s_m'}}}
 \and
-\inferrule[G-Step-Ret]{S(n) = \config{\store_n}{\efill{\wait{m}[\type]}} \and S(m) = \config{\store_m}{\val ; \overline{\expr_m}} }{\gconfig{m}{\env}{S} \gstepsto \gconfig{n}{\env}{\extends{S}{n \mapsto \config{\store_n}{\efill{\val}}, m \mapsto \config{\store_m}{\overline{\expr_m}}}}}
+\inferrule[G-Step-Ret]{S(n) = \config{\store_n}{\efill{\wait[\type]}} \and S(m) = \config{\store_m}{\val ; \overline{\expr_m}} \\\\ s_n' = \config{\store_n}{\efill{\val}} \and s_m' = \config{\store_m}{\overline{\expr_m}}}{\gconfig{m \cdot n \cdot \overline{n}}{\env}{S} \gstepsto \gconfig{n \cdot \overline{n}}{\env}{\extends{S}{n \mapsto s_n', m \mapsto s_m'}}}
 %\and
 %\inferrule[G-Step-Stop]{\forall n \in \Nameset \setminus \{m\}~.~ \termsym(S_n) \and S_m = \config{\store_m}{\val ; \termsym}}{\gconfig{m}{\env}{S} \gstepsto[][] \gconfig{m}{\env}{\extend{S}{m}{\config{\store_m}{\termsym}}}}
 \end{mathpar}
@@ -268,7 +268,7 @@ Given a global typing environment $\tenv$ we write $\wf{n; \tenv}{\store}$ if, f
 \and
 \inferrule[T-New]{\hastype{n; \tenv}{\expr_1}{\labeltype} \\\\ \hastype{n; \tenv}{\expr_2}{\type} \\\\ \type' = \liotype{(\reftype[n]{\type})}}{\hastype{n; \tenv}{\new{\expr_1}{\expr_2}}{\type'}}
 \and
-\inferrule[T-Wait]{\type' = \liotype{(\labeled{\type})}}{\hastype{n; \tenv}{\wait{m}[\type]}{\type'}}
+\inferrule[T-Wait]{\type' = \liotype{(\labeled{\type})}}{\hastype{n; \tenv}{\wait[\type]}{\type'}}
 \end{mathpar}
 \caption{Typing judgment for \lang.}
 \label{fig:type-judgment}

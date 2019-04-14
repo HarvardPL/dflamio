@@ -19,9 +19,9 @@ We express the attacker model in terms of a trace semantics, in which certain op
 \begin{mathpar}
 \inferrule[E-Write-Ev]{[\ldots] \and \event = (\mathsf{write}(\addr, \expr'), \env, n)}{\step{n; \env}[][\event]{\config{\store}{\efill{\writeref{\addr}{\expr'}}}}{\config{\store'}{\efill{\return{()}}}}{\sigma}}
 \and
-\inferrule[G-Step-Ret-Ev]{S(n) = \config{\store_n}{\efill{\wait{m}[\type]}} \and S(m) = \config{\store_m}{\val ; \overline{\expr_m}} \\\\ \event = (\mathsf{ret}(\val, n), \env, m)}{\gconfig{m}{\env}{S} \gstepsto[][\event] \gconfig{n}{\env}{\extends{S}{n \mapsto \config{\store_n}{\efill{\val}}, m \mapsto \config{\store_m}{\overline{\expr_m}}}}}
+\inferrule[G-Step-Ret-Ev]{S(n) = \config{\store_n}{\efill{\wait[\type]}} \and S(m) = \config{\store_m}{\val ; \overline{\expr_m}} \\\\ \event = (\mathsf{ret}(\val, n), \env, m)}{\gconfig{m \cdot n \cdot \overline{n}}{\env}{S} \gstepsto[][\event] \gconfig{n \cdot \overline{n}}{\env}{\extends{S}{n \mapsto s_n', m \mapsto s_m'}}}
 \and
-\inferrule[G-Step-Local-Ev]{\step{n; \env}[][\event]{S(n)}{s}{\sigma}}{\gconfig{n}{\env}{S} \gstepsto[][\event] \gconfig{n}{\extend{\env}{n}{\sigma}}{\extend{S}{n}{s}}}
+\inferrule[G-Step-Local-Ev]{\step{n; \env}[][\event]{S(n)}{s}{\sigma}}{\gconfig{n \cdot \overline{n}}{\env}{S} \gstepsto[][\event] \gconfig{n \cdot \overline{n}}{\extend{\env}{n}{\sigma}}{\extend{S}{n}{s}}}
 \and
 \inferrule[E-Assume-Ev]{
 [\ldots] \and \event = (\mathsf{release}(p, q, r), \env, n)}{\step{n; \env}[][\event]{\config{\store}{\efill{\adddelegate{p}{q}{r}}}}{ \config{\store}{\efill{\return{()}}}}{\sigma}}

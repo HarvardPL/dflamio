@@ -76,7 +76,7 @@
 \newcommand{\removedelegate}[3]{\removedelegatekw\;(#1 \actsfor #2)\;#3}
 \newcommand{\getstrategy}{\mathsf{getStrategy}}
 \newcommand{\actsfor}{\succcurlyeq}
-\NewDocumentCommand{\wait}{ m O{}}{\mathsf{wait}_{#2}(#1)}
+\NewDocumentCommand{\wait}{O{}}{\mathsf{wait}(#1)}
 \newcommand{\resetstrategy}[2]{\mathsf{resetStrategy}_{#1}(#2)}
 \newcommand{\resetscope}[2]{\mathsf{resetScope}_{#1}(#2)}
 \NewDocumentCommand{\internalTolabeled}{ O{} m m m }{\tolabeledkw^{#1}_{#2}\;#3\;#4}
