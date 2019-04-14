@@ -142,11 +142,11 @@ Note that the computation is decentralized, and multiple nodes with different re
     \begin{mathpar}
     \inferrule[Acts-For-Cons-1]{\actsforquery{\Assumps; n; \env}[\stratelem \meet \conf{n}]{p}{q}{\level}}{\actsforquery{\Assumps; n; \env}[\cons{\stratelem}{\stratelem*}]{p}{q}{\level}}
     \and
-    \inferrule[Acts-For-Cons-2]{\notactsforquery{\Assumps; n; \env}[\stratelem \meet \conf{n}]{p}{q} \\\\ \actsforquery{\Assumps; n; \env}[\stratelem*]{p}{q}{\level}}{\actsforquery{\Assumps; n; \env}[\cons{\stratelem}{\stratelem*}]{p}{q}{\level}}
+    \inferrule[Acts-For-Cons-2]{\notactsforquery{\Assumps; n; \env}[\stratelem \meet \conf{n}]{p}{q} \\\\ \actsforquery{\Assumps; n; \env}[\stratelem*]{p}{q}{\option{\level}}}{\actsforquery{\Assumps; n; \env}[\cons{\stratelem}{\stratelem*}]{p}{q}{\option{\level}}}
     \and
     \inferrule[Acts-For-Nil]{~}{\notactsforquery{C}[\nil]{p}{q}}
     \and
-    \inferrule[Acts-For]{\stratelem* = \env(n).\strategy \and \actsforquery{C}[\stratelem*]{p}{q}{\option{\level}}}{\actsforquery{C}{p}{q}{\option{\level}}}
+    \inferrule[Acts-For]{\stratelem* = \env(n).\strategy \and \actsforquery{C}[\stratelem*]{p}{q}{\level}}{\actsforquery{C}{p}{q}{\level}}
     \end{mathpar}
     \caption{Top-level judgment for proving authorization queries in \lang. The meta-variable $C$ abbreviates $\Assumps; n; \env$.}
     \label{fig:top-level-act-for-judgment}
