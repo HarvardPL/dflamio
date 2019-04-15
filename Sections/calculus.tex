@@ -148,7 +148,7 @@ the semantics is deterministic:  only one expression is reducible at any point. 
     \and
     \inferrule[Acts-For-Nil]{~}{\notactsforquery{C}[\nil]{p}{q}}
     \and
-    \inferrule[Acts-For]{\stratelem* = \env(n).\strategy \and \actsforquery{C}[\stratelem*]{p}{q}{\level}}{\actsforquery{C}{p}{q}{\level}}
+    \inferrule[Acts-For]{\stratelem* = \env(n).\strategy \and \actsforquery{\Assumps; n; \env}[\stratelem*]{p}{q}{\level}}{\actsforquery{\Assumps; n; \env}{p}{q}{\level}}
     \end{mathpar}
     \caption{Top-level judgment for proving authorization queries in \lang. The meta-variable $C$ abbreviates $\Assumps; n; \env$.}
     \label{fig:top-level-act-for-judgment}
